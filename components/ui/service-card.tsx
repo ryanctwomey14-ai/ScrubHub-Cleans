@@ -1,0 +1,143 @@
+"use client";
+
+import * as React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+
+/**
+ * Image card, adapted from 21st.dev "card-7" (TravelCard)
+ * to the ScrubHub design system. Differences from the original:
+ *  - brand tokens and fonts instead of shadcn theme variables
+ *  - a labeled photo placeholder until a real image is supplied
+ *  - no price on the card; a "Get a quote" button is always visible
+ *  - hover (mouse devices only) lifts the card and zooms the photo
+ */
+export interface ServiceCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  imageUrl?: string;
+  imageAlt: string;
+  /** Shown on the placeholder until `imageUrl` is set: the exact photo to shoot. */
+  photoBrief?: string;
+  logo?: React.ReactNode;
+  title: string;
+  href?: string;
+  subtitle: string;
+  overview: string;
+  bookLabel?: string;
+  onBookNow: () => void;
+}
+
+const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
+  (
+    {
+      className,
+      imageUrl,
+      imageAlt,
+      photoBrief,
+      logo,
+      title,
+      href,
+      subtitle,
+      overview,
+      bookLabel = "Get a quote",
+      onBookNow,
+      ...props
+    },
+    ref,
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "group relative flex min-h-[27rem] w-full overflow-hidden rounded-2xl bg-night text-white",
+          "shadow-[0_24px_50px_-30px_rgba(8,18,38,0.6)] transition-all duration-300 ease-out",
+          "can-hover:hover:-translate-y-2 can-hover:hover:shadow-[0_36px_70px_-30px_rgba(8,18,38,0.75)]",
+          className,
+        )}
+        {...props}
+      >
+        {/* Background image (zooms on hover), or a labeled placeholder */}
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={imageAlt}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition-transform duration-700 ease-out can-hover:group-hover:scale-110"
+          />
+        ) : (
+          <div
+            role="img"
+            aria-label={`Placeholder photo: ${photoBrief ?? imageAlt}`}
+            className="absolute inset-0 bg-[linear-gradient(150deg,#1d3a6b_0%,#13264c_45%,#0b1733_100%)] transition-transform duration-700 ease-out can-hover:group-hover:scale-110"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-[0.08]"
+              style={{ backgroundImage: "repeating-linear-gradient(115deg, #fff 0 1px, transparent 1px 14%)" }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-25 blur-3xl"
+              style={{ background: "radial-gradient(circle, #3fd8f2, transparent 65%)" }}
+            />
+          </div>
+        )}
+
+        {/* Gradient overlay for text readability */}
+        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night via-night/60 to-transparent" />
+
+        {/* Content */}
+        <div className="relative flex w-full flex-col justify-between p-6 md:p-7">
+          {/* Top: icon + photo label */}
+          <div className="flex items-start justify-between gap-3">
+            {logo && (
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white/40 bg-white/10 text-glint backdrop-blur-sm">
+                {logo}
+              </div>
+            )}
+            {!imageUrl && photoBrief && (
+              <span
+                title={photoBrief}
+                className="rounded-md bg-white/10 px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-white/60 backdrop-blur-sm"
+              >
+                Photo placeholder
+              </span>
+            )}
+          </div>
+
+          {/* Details */}
+          <div className="mt-24 space-y-4">
+            <div>
+              <h3 className="display text-[1.75rem] leading-tight !font-bold">
+                {href ? (
+                  <Link href={href} className="after:absolute after:inset-0 focus-visible:outline-none">
+                    {title}
+                  </Link>
+                ) : (
+                  title
+                )}
+              </h3>
+              <p className="mt-1 text-[0.875rem] text-white/75">{subtitle}</p>
+            </div>
+            <div>
+              <h4 className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-glint">Overview</h4>
+              <p className="mt-1 text-[0.9375rem] leading-relaxed text-white/80">{overview}</p>
+            </div>
+          </div>
+
+          {/* Button: always visible, so every card has one clear next step */}
+          <div className="relative z-10 mt-6">
+            <button type="button" onClick={onBookNow} className="btn w-full bg-white !text-ink hover:bg-white/90">
+              {bookLabel} <Icon name="arrow" size={16} className="btn-arrow" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  },
+);
+ServiceCard.displayName = "ServiceCard";
+
+export { ServiceCard };

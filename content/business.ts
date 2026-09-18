@@ -30,6 +30,8 @@ export interface Service {
   startingPrice: number | null;
   /** Exact photo the client should shoot for this service. */
   photoBrief: string;
+  /** Path to the real photo in /public (e.g. "/photos/deep-cleaning.jpg"). Until set, a labeled placeholder shows. */
+  image?: string;
   seoTitle: string;
   seoDescription: string;
 }
@@ -131,7 +133,7 @@ export const business = {
   /** Short proof points used in strips and badges. */
   proofPoints: ["Top Rated", "Flexible", "We Will Make It Right... ALWAYS"],
 
-  services: [
+  services: ([
     {
       slug: "maintenance-cleaning",
       name: "Maintenance Cleaning",
@@ -267,7 +269,7 @@ export const business = {
       seoDescription:
         "Commercial and office cleaning in Pittsburgh on a schedule built around your business hours. Flexible, accountable, and rated 4.8 stars.",
     },
-  ] satisfies Service[],
+  ] satisfies Service[]) as Service[],
 
   /**
    * Real client reviews, word for word as written by the client. The first

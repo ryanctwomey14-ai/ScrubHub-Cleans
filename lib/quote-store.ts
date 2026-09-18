@@ -588,3 +588,13 @@ export const actions = {
     void say(null, ["Fresh start. What do you need cleaned?"], "service");
   },
 };
+
+/**
+ * From a service card: start the quote for that service if the visitor hasn't
+ * begun one yet (an in-progress quote is never overwritten).
+ */
+export function startQuoteFor(slug: ServiceSlug) {
+  load();
+  if (state.step === "service" && !state.typing && !state.lead) actions.chooseService(slug);
+  track("quote_card_click", { service: slug });
+}

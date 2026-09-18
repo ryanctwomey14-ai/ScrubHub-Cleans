@@ -23,6 +23,10 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Devices with a real hover (mouse/trackpad). Hover-only reveals are scoped to
+   this so touch users always see every detail and button. */
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+
 @theme inline {
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
