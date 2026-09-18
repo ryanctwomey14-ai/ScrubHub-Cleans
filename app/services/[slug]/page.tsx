@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { business, cityLabel, formatPrice, getService } from "@/content/business";
-import { PageHero } from "@/components/sections/PageHero";
-import { QuoteSection } from "@/components/sections/QuoteSection";
+import { QuoteForm } from "@/components/forms/QuoteForm";
+import { DarkHero } from "@/components/sections/DarkHero";
+import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
+import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
+import { FinalCta } from "@/components/sections/FinalCta";
 import { Icon } from "@/components/ui/Icon";
-import { PhotoSlot } from "@/components/ui/PhotoSlot";
-import { Eyebrow } from "@/components/ui/SectionIntro";
+import { serviceIcon } from "@/components/ui/serviceIcons";
 import { JsonLd } from "@/lib/schema";
 
 export function generateStaticParams() {
@@ -32,8 +34,6 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
   const service = getService(slug);
   if (!service) notFound();
 
-  const others = business.services.filter((s) => s.slug !== service.slug);
-
   return (
     <>
       <JsonLd
@@ -49,112 +49,74 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
         }}
       />
 
-      <PageHero
+      <DarkHero
         eyebrow={`${service.shortName} · ${cityLabel}`}
-        title={service.name}
+        title={
+          <>
+            {service.name} <em>in {business.location.city}</em>
+          </>
+        }
         lede={service.intro}
+        photoBrief={service.photoBrief}
         crumbs={[
           { href: "/services", label: "Services" },
           { href: `/services/${service.slug}`, label: service.shortName },
         ]}
-      >
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href={`/contact?service=${encodeURIComponent(service.name)}#quote`} className="btn btn-primary">
-            Get a {service.shortName.toLowerCase()} quote <Icon name="arrow" size={16} className="btn-arrow" />
-          </Link>
-          <a href={business.contact.smsHref} className="btn btn-ghost">
-            <Icon name="message" size={16} /> Text {business.contact.phoneDisplay}
-          </a>
-          <span className="ml-1 text-[0.9375rem] text-stone">{formatPrice(service.startingPrice)}</span>
-        </div>
-      </PageHero>
+        form={<QuoteForm title={`Get Your ${service.shortName} Quote`} defaultService={service.name} />}
+      />
 
-      <section className="pb-24 md:pb-32" aria-labelledby="focus-title">
-        <div className="shell grid gap-12 lg:grid-cols-12 lg:gap-16">
-          <div data-reveal className="lg:col-span-6">
-            <PhotoSlot brief={service.photoBrief} className="aspect-[4/5] w-full rounded-[2rem] lg:sticky lg:top-28" />
-          </div>
-
-          <div className="lg:col-span-6 lg:pt-6">
-            <div data-reveal>
-              <Eyebrow>What we focus on</Eyebrow>
-            </div>
-            <h2 id="focus-title" data-reveal className="display mt-6 text-[clamp(2.25rem,3.8vw,3.25rem)]">
-              Where a typical visit <em>spends its time.</em>
+      <section className="section" aria-labelledby="included-title">
+        <div className="shell grid gap-6 lg:grid-cols-12">
+          <div data-reveal className="rounded-2xl border border-sand bg-white p-7 md:p-10 lg:col-span-7">
+            <p className="eyebrow">What&rsquo;s included</p>
+            <h2 id="included-title" className="display h2 mt-4">
+              Where Your <em>Clean Focuses</em>
             </h2>
-            <ul className="mt-10 border-t border-sand">
-              {service.focus.map((f, i) => (
-                <li
-                  key={f}
-                  data-reveal
-                  data-reveal-delay={String(i * 0.04)}
-                  className="flex gap-4 border-b border-sand py-5 text-[1.0625rem]"
-                >
-                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ink text-porcelain">
-                    <Icon name="check" size={13} strokeWidth={2.2} />
+            <ul className="mt-8 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+              {service.focus.map((f) => (
+                <li key={f} className="flex gap-3 text-[0.9375rem] leading-relaxed">
+                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-hub text-white">
+                    <Icon name="check" size={13} strokeWidth={2.4} />
                   </span>
                   {f}
                 </li>
               ))}
             </ul>
-            <p data-reveal className="mt-6 text-[0.9375rem] text-stone">
-              Every clean is tailored, so we&rsquo;ll confirm exactly what&rsquo;s included with your quote.
+            <p className="mt-8 border-t border-sand pt-5 text-[0.875rem] text-stone">
+              Every clean is tailored, so we confirm exactly what&rsquo;s included with your quote.
             </p>
+          </div>
 
-            <div data-reveal className="mt-14 rounded-[1.75rem] bg-linen p-8 md:p-10">
-              <h3 className="display text-[1.75rem]">A good fit for</h3>
-              <ul className="mt-6 space-y-3">
-                {service.idealFor.map((f) => (
-                  <li key={f} className="flex gap-3 text-ink/85">
-                    <span className="mt-[0.65em] h-1.5 w-1.5 shrink-0 rounded-full bg-hub" aria-hidden="true" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div data-reveal className="on-ink mt-5 flex gap-5 rounded-[1.75rem] bg-ink p-8 text-porcelain md:p-10">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/8 text-glint">
-                <Icon name="shield" size={22} />
-              </span>
-              <div>
-                <h3 className="display text-[1.75rem] leading-tight">{business.guarantee.headline}</h3>
-                <p className="mt-3 text-porcelain/75">{business.guarantee.body}</p>
-              </div>
+          <div data-reveal data-reveal-delay="0.08" className="on-ink flex flex-col rounded-2xl bg-ink p-7 text-white md:p-10 lg:col-span-5">
+            <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/10 text-glint">
+              <Icon name={serviceIcon[service.slug]} size={26} />
+            </span>
+            <h3 className="display mt-6 text-[1.5rem] !font-bold">A great fit for</h3>
+            <ul className="mt-5 flex-1 space-y-3 text-white/85">
+              {service.idealFor.map((f) => (
+                <li key={f} className="flex gap-3">
+                  <span className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-glint" aria-hidden="true" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex items-center justify-between gap-4 border-t border-white/10 pt-6">
+              <span className="text-[0.875rem] font-bold text-mist">{formatPrice(service.startingPrice)}</span>
+              <Link href="#quote" className="btn btn-primary !h-11">
+                Get my quote <Icon name="arrow" size={15} className="btn-arrow" />
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-sand py-20 md:py-24" aria-labelledby="more-title">
-        <div className="shell">
-          <h2 id="more-title" data-reveal className="display text-[2rem] md:text-[2.5rem]">
-            Other services
-          </h2>
-          <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {others.map((s, i) => (
-              <li key={s.slug} data-reveal data-reveal-delay={String(i * 0.05)}>
-                <Link
-                  href={`/services/${s.slug}`}
-                  className="group flex h-full flex-col justify-between gap-6 rounded-2xl border border-sand p-6 transition-colors hover:border-ink/30 hover:bg-white/60"
-                >
-                  <span className="display text-[1.375rem] leading-tight">{s.name}</span>
-                  <span className="flex items-center justify-between text-[0.875rem] text-stone">
-                    {formatPrice(s.startingPrice)}
-                    <Icon name="arrow-up-right" size={16} className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <QuoteSection
+      <GuaranteeBand />
+      <ReviewsBlock />
+      <FinalCta
         defaultService={service.name}
         title={
           <>
-            Get your {service.shortName.toLowerCase()} <em>quote.</em>
+            Book Your {service.shortName} <em>Today</em>
           </>
         }
       />

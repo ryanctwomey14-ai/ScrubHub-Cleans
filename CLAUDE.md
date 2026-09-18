@@ -59,14 +59,15 @@ An AI concierge chat assistant that answers customer questions and guides them t
 - Write all copy ourselves: confident, warm, specific. No lorem ipsum, no clichés.
 - If unsure, ask the client instead of guessing.
 
-## Chosen design direction: B — "Porcelain" (approved 2026-09-18)
-- **Mood:** bright, airy, gallery-like; premium hospitality. Reads as clean and trustworthy.
-- **Palette:** Porcelain `#F7F5F0` (base) · Linen `#ECE7DD` (alternate surfaces) · Ink Navy `#0F1D3A` (all text; footer and chat panel backgrounds) · Hub Blue `#1F6FFF` (primary buttons only) · Stone `#6E6A62` (secondary text) · Glint Cyan `#3FD8F2` (focus states and chat accents only)
-- **Type:** Fraunces for display (soft optical size, quirky alternates off) + Manrope for body/UI.
-- **Hero:** asymmetric split. Large headline left with the 4.8★ / 160 reviews line; tall rounded-arch photo of a sunlit finished room right; slim "instant quote" bar (service, zip, button) overlapping the hero's bottom edge.
-- **Signature motion:** masked line-by-line headline rise + arch frame opening and settling from a slight zoom; later, a scroll-pinned "24-hour make-it-right" moment with a clock hand sweeping a full circle.
-- **Principles carried from the references:** one accent on a restrained base; contact/quote always reachable; layered elements that bridge sections; proof right after the fold; big numerals as trust; a three-step process; framed imagery.
-- **Logo:** the logo's sparkle is the only sparkle on the site. A transparent/SVG logo is required for light backgrounds.
+## Current design direction: "Bold conversion" (client redirect, 2026-09-18)
+Replaces the earlier "Porcelain" direction, which the client felt read as AI-generated. The client asked to **mimic a top-performing home-services layout** (reference: a "Dexlory" contractor template screenshot), keep every page tight, and make every element push toward a quote or booking.
+- **Structure every page follows:** dark photo hero with the quote form built in (right) → only the content that page needs → guarantee band and/or reviews → final CTA block with the form again → footer. No long editorial sections.
+- **Palette (brand blue, not the reference's yellow):** Night `#081226` / Ink `#0F1D3A` (heroes, dark cards, footer) · Hub Blue `#1A5FE8` (all primary buttons) · Glint Cyan `#3FD8F2` (highlight word on dark) · cool light gray page `#F5F7FB`, alt surface `#EAF0F8`, hairline `#DFE5EE` · slate text `#56607A`. One cool gray family only. Token names in globals.css kept from v1 (porcelain/linen/sand/stone).
+- **Type:** Archivo 800 (wdth 92%) for headings, Title Case, with one highlighted word via `<em>`; Manrope for body.
+- **Signature pieces:** pill nav with active item in white; hero form card; four feature cards overlapping the hero bottom with the 24-hour promise card in Hub Blue; icon-led service cards (no photo placeholders there); dark "Not sure what you need?" tile.
+- **Imagery:** client chose **labeled placeholders, no stock photos**. Only heroes and About use photo stand-ins; each carries a "Photo to shoot" note.
+- **Motion:** restrained fade-up reveals + Lenis. The pinned clock and arch reveal were removed for speed and focus.
+- **Logo:** the logo's sparkle is the only sparkle on the site; dark-background logo variant used in the header.
 
 ## Process
 Phases, each ending in a checkpoint and a git commit:
@@ -83,5 +84,6 @@ Phases, each ending in a checkpoint and a git commit:
 - **Phases 2–6 — Build (2026-09-18):** client asked to build the full site locally for review. ✅ PLAN.md written; Next.js 16 app scaffolded; business.ts, tokens, fonts, Lenis/GSAP, header, footer, mobile CTA; full homepage (9 sections); chatbot (UI, streaming API, lead capture, rate limits); all inner pages; sitemap, robots, OG image, LocalBusiness + FAQ + Service schema. Checked at 375/768/1440 with Playwright; production build passes.
   - Built without the premium-cleaning-site skill (still empty). Re-audit against it once provided.
   - City set to "Pittsburgh" in business.ts pending confirmation.
+- **Redesign (2026-09-18):** ✅ rebuilt to the "Bold conversion" direction above. Every page now has a hero quote form; the homepage went from ~9,500px to ~5,000px tall at 1440 wide. Checked at 375/1440 with Playwright; production build passes.
 - **Phase 7 — Polish & QA:** not started. Still to do: Lighthouse run, full keyboard/a11y pass, reduced-motion check in a real browser, real photography.
 - **Open items:** premium-cleaning-site SKILL.md is empty (contents pending); confirm Pittsburg vs Pittsburgh; theme-factory skill not installed; vector logo preferred (transparent PNGs were cut from the raster in public/brand/); real testimonials, photos, prices, knowledge file, API key, and lead webhook from the client.

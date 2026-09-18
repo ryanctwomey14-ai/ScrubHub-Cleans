@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Archivo, Manrope } from "next/font/google";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { business, cityLabel } from "@/content/business";
@@ -10,11 +10,10 @@ import { MobileCTA } from "@/components/layout/MobileCTA";
 import { ChatLauncher } from "@/components/chat/ChatLauncher";
 import { JsonLd, localBusinessSchema } from "@/lib/schema";
 
-const fraunces = Fraunces({
+const archivo = Archivo({
   subsets: ["latin"],
-  variable: "--font-fraunces",
-  style: ["normal", "italic"],
-  axes: ["SOFT", "WONK", "opsz"],
+  variable: "--font-archivo",
+  axes: ["wdth"],
   display: "swap",
 });
 
@@ -44,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f5f0",
+  themeColor: "#081226",
 };
 
 /** Hide reveal targets before paint only when motion is allowed; fail open after 4s. */
@@ -52,12 +51,12 @@ const motionGuard = `(function(){try{if(!matchMedia('(prefers-reduced-motion: re
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${manrope.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${archivo.variable} ${manrope.variable} antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionGuard }} />
         <JsonLd data={localBusinessSchema()} />
       </head>
-      <body className="grain min-h-dvh bg-porcelain text-ink">
+      <body className="min-h-dvh bg-porcelain text-ink">
         <MotionProvider>
           <Header />
           <main id="main" className="overflow-x-clip">

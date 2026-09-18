@@ -1,49 +1,38 @@
 import type { Metadata } from "next";
 import { business, cityLabel } from "@/content/business";
-import { PageHero } from "@/components/sections/PageHero";
-import { CtaBand } from "@/components/sections/CtaBand";
-import { ReviewCard } from "@/components/ui/ReviewCard";
-import { Stars } from "@/components/ui/Icon";
+import { QuoteForm } from "@/components/forms/QuoteForm";
+import { DarkHero } from "@/components/sections/DarkHero";
+import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
+import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
+import { FinalCta } from "@/components/sections/FinalCta";
 
 export const metadata: Metadata = {
   title: "Client Reviews",
-  description: `${business.name} is rated ${business.rating.value} stars from ${business.rating.count} reviews. See what clients across ${cityLabel} say about their cleans.`,
+  description: `${business.name} is rated ${business.rating.value} stars from ${business.rating.count} reviews across ${cityLabel}. See why clients stay with us.`,
   alternates: { canonical: "/reviews" },
 };
 
 export default function ReviewsPage() {
   return (
     <>
-      <PageHero
+      <DarkHero
         eyebrow="Client reviews"
         title={
           <>
-            {business.rating.count} reviews. <em>One reputation.</em>
+            {business.rating.value} Stars From <em>{business.rating.count} Reviews</em>
           </>
         }
-        lede="We earn every review the same way: by listening, tailoring the clean, and making it right if anything's missed."
-      >
-        <div className="flex items-center gap-6">
-          <p className="display text-[5rem] leading-none tracking-[-0.04em]">{business.rating.value}</p>
-          <div>
-            <Stars className="text-hub" size={18} />
-            <p className="mt-2 text-stone">Average rating from {business.rating.count} reviews</p>
-          </div>
-        </div>
-      </PageHero>
-
-      <section className="pb-24 md:pb-32" aria-label="Reviews">
-        <div className="shell grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {business.testimonials.map((r, i) => (
-            <ReviewCard key={i} review={r} delay={(i % 3) * 0.08} />
-          ))}
-        </div>
-      </section>
-
-      <CtaBand
+        lede="We earn every review the same way: we listen, tailor the clean, and make it right if anything's missed."
+        photoBrief="A happy client at their front door waving goodbye to a ScrubHub cleaner. Candid, warm light."
+        crumbs={[{ href: "/reviews", label: "Reviews" }]}
+        form={<QuoteForm />}
+      />
+      <ReviewsBlock showLink={false} />
+      <GuaranteeBand />
+      <FinalCta
         title={
           <>
-            Become our next <em>five-star review.</em>
+            Become Our Next <em>5-Star Review</em>
           </>
         }
       />

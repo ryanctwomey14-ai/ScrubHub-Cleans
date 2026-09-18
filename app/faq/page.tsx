@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { business } from "@/content/business";
-import { PageHero } from "@/components/sections/PageHero";
-import { CtaBand } from "@/components/sections/CtaBand";
+import { DarkHero } from "@/components/sections/DarkHero";
+import { FinalCta } from "@/components/sections/FinalCta";
 import { Accordion } from "@/components/ui/Accordion";
 import { OpenChatButton } from "@/components/chat/OpenChatButton";
 import { Icon } from "@/components/ui/Icon";
@@ -28,28 +28,28 @@ export default function FaqPage() {
         }}
       />
 
-      <PageHero
+      <DarkHero
         eyebrow="FAQ"
         title={
           <>
-            Questions, <em>answered.</em>
+            Questions? <em>Answered.</em>
           </>
         }
-        lede="The things clients ask us most. Don't see yours? Our concierge answers in seconds, or talk to the team any time."
+        lede="Quick answers to what clients ask most. Still wondering? Ask our concierge or call us any time."
+        photoBrief="Close-up of a ScrubHub cleaner talking with a client at a kitchen island, both smiling."
+        crumbs={[{ href: "/faq", label: "FAQ" }]}
       />
 
-      <section className="pb-24 md:pb-32" aria-label="Frequently asked questions">
-        <div className="shell grid gap-14 lg:grid-cols-12">
-          <div data-reveal className="lg:col-span-8">
+      <section className="section" aria-label="Frequently asked questions">
+        <div className="shell grid gap-8 lg:grid-cols-12 lg:gap-12">
+          <div data-reveal className="rounded-2xl border border-sand bg-white px-6 md:px-10 lg:col-span-8">
             <Accordion items={business.faqs} />
           </div>
-          <aside data-reveal data-reveal-delay="0.1" className="lg:col-span-4">
-            <div className="on-ink rounded-[1.75rem] bg-ink p-8 text-porcelain lg:sticky lg:top-28">
-              <p className="display text-[1.75rem] leading-tight">Still wondering?</p>
-              <p className="mt-3 text-porcelain/75">
-                Ask our AI concierge, or reach the team directly. We&rsquo;re available 24/7.
-              </p>
-              <div className="mt-7 grid gap-3">
+          <aside data-reveal data-reveal-delay="0.08" className="lg:col-span-4">
+            <div className="on-ink rounded-2xl bg-ink p-8 text-white lg:sticky lg:top-28">
+              <h2 className="display text-[1.5rem] !font-bold">Still have a question?</h2>
+              <p className="mt-3 text-white/75">Our AI concierge answers in seconds, or talk to the team 24/7.</p>
+              <div className="mt-6 grid gap-3">
                 <OpenChatButton className="btn btn-primary w-full">Ask the concierge</OpenChatButton>
                 <a href={business.contact.phoneHref} className="btn btn-ghost-light w-full">
                   <Icon name="phone" size={16} /> {business.contact.phoneDisplay}
@@ -60,7 +60,7 @@ export default function FaqPage() {
         </div>
       </section>
 
-      <CtaBand />
+      <FinalCta />
     </>
   );
 }
