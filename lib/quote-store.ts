@@ -1,7 +1,7 @@
 "use client";
 
 import { business, type ServiceSlug } from "@/content/business";
-import { booking, offer } from "@/content/pricing";
+import { booking, offer, pricing } from "@/content/pricing";
 import { estimate, formatQuote, inServiceArea, type Quote } from "@/lib/quote";
 import { track } from "@/lib/track";
 
@@ -9,25 +9,34 @@ import { track } from "@/lib/track";
  * One quote conversation shared by every assistant on the site (hero, final
  * CTA, exit nudge), saved to localStorage so progress survives refreshes and
  * page changes, and resumable from the link we text the customer.
+ *
+ * Flow (home services):
+ *   service → bedrooms + bathrooms → square feet → condition → [frequency]
+ *   → add-ons → contact (name, mobile, email, zip) → exact price + next open
+ *   slot → booked → card to lock in the cleaner (demo) → done
  */
 
 export type Step =
-  | "service" | "size" | "beds" | "baths" | "freq" | "zip" | "contact"
-  | "quote" | "date" | "time" | "confirm" | "done";
+  | "service" | "size" | "rooms" | "sqft" | "condition" | "freq" | "addons" | "contact"
+  | "quote" | "date" | "time" | "card" | "done";
 
 export type Msg =
   | { id: number; from: "bot" | "user"; text: string }
-  | { id: number; from: "bot"; card: "preview" | "quote" | "review" };
+  | { id: number; from: "bot"; card: "preview" | "quote" | "review" | "booked" };
 
 export interface Answers {
   service?: ServiceSlug;
   bedrooms?: number;
   bathrooms?: number;
+  sqft?: string;
+  condition?: string;
+  addOns?: string[];
   frequency?: string;
   sizeTier?: string;
   zip?: string;
   name?: string;
   phone?: string;
+  email?: string;
   date?: string;
   window?: string;
 }
@@ -39,6 +48,7 @@ export interface QuoteState {
   lead: Record<string, unknown> | null;
   quotedAt?: number;
   booked: boolean;
+  cardAdded: boolean;
   alerted: boolean;
   updatedAt: number;
   /** Transient (not saved) */
@@ -46,7 +56,7 @@ export interface QuoteState {
   started: boolean;
 }
 
-const KEY = "scrubhub-quote-v2";
+const KEY = "scrubhub-quote-v3";
 const TTL = offer.priceLockDays * 86_400_000;
 
 const fresh = (): QuoteState => ({
@@ -55,6 +65,7 @@ const fresh = (): QuoteState => ({
   answers: {},
   lead: null,
   booked: false,
+  cardAdded: false,
   alerted: false,
   updatedAt: Date.now(),
   typing: false,
@@ -132,14 +143,23 @@ export const serviceOf = (slug?: ServiceSlug) => business.services.find((s) => s
 
 export function currentQuote(a: Answers): Quote | null {
   if (!a.service) return null;
-  return estimate({ service: a.service, bedrooms: a.bedrooms, bathrooms: a.bathrooms, frequency: a.frequency, sizeTier: a.sizeTier });
+  return estimate({
+    service: a.service,
+    bedrooms: a.bedrooms,
+    bathrooms: a.bathrooms,
+    sqft: a.sqft,
+    condition: a.condition,
+    addOns: a.addOns,
+    frequency: a.frequency,
+    sizeTier: a.sizeTier,
+  });
 }
 
-/** Questions for this visitor's path, used for "Question 2 of 5". */
+/** Questions for this visitor's path, used for "Question 2 of 6". */
 export function questionPath(a: Answers): Step[] {
-  if (a.service === "commercial-cleaning") return ["service", "size", "zip", "contact"];
-  if (a.service === "maintenance-cleaning") return ["service", "beds", "baths", "freq", "zip", "contact"];
-  return ["service", "beds", "baths", "zip", "contact"];
+  if (a.service === "commercial-cleaning") return ["service", "size", "contact"];
+  if (a.service === "maintenance-cleaning") return ["service", "rooms", "sqft", "condition", "freq", "addons", "contact"];
+  return ["service", "rooms", "sqft", "condition", "addons", "contact"];
 }
 
 export function bookableDays() {
@@ -161,6 +181,14 @@ export function bookableDays() {
   return days;
 }
 
+/** DEMO: the first open slot. The live version reads real availability from the scheduling software. */
+export function nextAvailable() {
+  const day = bookableDays()[0];
+  return { iso: day.iso, label: day.label, window: booking.windows[0] };
+}
+
+const dayLabel = (iso?: string) => bookableDays().find((d) => d.iso === iso)?.label ?? iso;
+
 /* ─── Conversation helpers ───────────────────────────────────── */
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -173,13 +201,15 @@ async function say(user: string | null, bot: (string | Msg)[], next: Step) {
     step: next,
   }));
   for (let i = 0; i < bot.length; i++) {
-    await wait(i === 0 ? 480 : 380);
+    await wait(i === 0 ? 450 : 360);
     const line = bot[i];
     const msg: Msg = typeof line === "string" ? { id: id(), from: "bot", text: line } : { ...line, id: id() };
     set((s) => ({ messages: [...s.messages, msg], typing: i < bot.length - 1 }));
   }
   if (!bot.length) set({ typing: false });
 }
+
+const card = (c: "preview" | "quote" | "review" | "booked"): Msg => ({ id: 0, from: "bot", card: c });
 
 function stepEvent(step: Step) {
   track("quote_step", { step, service: state.answers.service });
@@ -211,7 +241,7 @@ export async function ensureStarted(preset?: ServiceSlug) {
       const q = currentQuote(state.answers);
       const first = state.answers.name?.split(" ")[0];
       if (q && first) {
-        await say(null, [`Welcome back, ${first}. Your ${formatQuote(q)} price is still held for you.`], state.step === "done" ? "done" : "quote");
+        await say(null, [`Welcome back, ${first}. Your ${formatQuote(q)} price is still held for you.`], "quote");
       }
     }
     return;
@@ -225,18 +255,18 @@ export async function ensureStarted(preset?: ServiceSlug) {
     await say(
       null,
       [
-        `Your ${svc.shortName.toLowerCase()}, handled. Walk in to a spotless space without lifting a finger.`,
-        "A few taps. Your exact price. Pick your day.",
-        svc.slug === "commercial-cleaning" ? "How big is the space?" : "How many bedrooms?",
+        `Get your real ${svc.shortName.toLowerCase()} price in 60 seconds. No calls, no waiting.`,
+        "A few quick taps and I'll show your exact price and the next open time.",
+        svc.slug === "commercial-cleaning" ? "How big is the space?" : "How many bedrooms and bathrooms?",
       ],
-      svc.slug === "commercial-cleaning" ? "size" : "beds",
+      svc.slug === "commercial-cleaning" ? "size" : "rooms",
     );
   } else {
     await say(
       null,
       [
-        "Walk in to a spotless home without lifting a finger.",
-        "A few taps. Your exact price. Pick your day. Backed by our 24-hour make-it-right promise.",
+        "Get your real price in 60 seconds. No calls, no waiting.",
+        "A few quick taps and I'll show your exact price and the next open time. Backed by our 24-hour make-it-right promise.",
         "What do you need cleaned?",
       ],
       "service",
@@ -254,23 +284,12 @@ async function resumeFromToken(token: string) {
     const json = (await res.json()) as { ok?: boolean; data?: Answers & { service: ServiceSlug; name: string; phone: string } };
     if (!json.ok || !json.data) return false;
     const a = json.data;
-    const q = currentQuote(a);
-    if (!q) return false;
-    state = {
-      ...fresh(),
-      started: true,
-      answers: a,
-      quotedAt: Date.now(),
-      lead: leadPayload(a),
-    };
+    if (!currentQuote(a)) return false;
+    state = { ...fresh(), started: true, answers: a, quotedAt: Date.now(), lead: leadPayload(a) };
     track("quote_resumed", { service: a.service });
     await say(
       null,
-      [
-        `Welcome back, ${a.name.split(" ")[0]}. Here's your price.`,
-        { id: 0, from: "bot", card: "quote" },
-        "Pick your day and you're done. Takes 10 seconds.",
-      ],
+      [`Welcome back, ${a.name.split(" ")[0]}. Here's your price.`, card("quote"), "Your next open time is below. One tap and it's yours."],
       "quote",
     );
     armIdle();
@@ -289,10 +308,20 @@ function leadPayload(a: Answers) {
     page: window.location.pathname,
     name: a.name,
     phone: a.phone,
+    email: a.email,
     zip: a.zip,
     service: q?.serviceName,
     frequency: a.frequency,
-    quote: { service: a.service, bedrooms: a.bedrooms, bathrooms: a.bathrooms, frequency: a.frequency, sizeTier: a.sizeTier },
+    quote: {
+      service: a.service,
+      bedrooms: a.bedrooms,
+      bathrooms: a.bathrooms,
+      sqft: a.sqft,
+      condition: a.condition,
+      addOns: a.addOns,
+      frequency: a.frequency,
+      sizeTier: a.sizeTier,
+    },
   };
 }
 
@@ -329,7 +358,28 @@ export function armIdle() {
 
 /* ─── Actions ────────────────────────────────────────────────── */
 
-const zipAsk = "Last one before your price: what's your zip? Just making sure we cover you.";
+const toSqft = "About how many square feet? Your best guess is fine.";
+const toAddOns = "Want any extras? Tap everything you'd like, or skip.";
+
+async function book(date: string, win: string, userText: string): Promise<string | null> {
+  if (!state.lead) return "Please get your quote first.";
+  const res = await postLead({ ...state.lead, stage: "booked", booking: { date, window: win } });
+  if (!res.ok) return res.error ?? "Couldn't book that. Please call or text us.";
+  if (idleTimer) clearTimeout(idleTimer);
+  set((s) => ({ booked: true, answers: { ...s.answers, date, window: win } }));
+  track("quote_booked", { service: state.answers.service, date, window: win });
+  const first = state.answers.name?.split(" ")[0];
+  await say(
+    userText,
+    [
+      card("booked"),
+      `You're booked, ${first}. We just sent a confirmation link to ${state.answers.email}.`,
+      `Last step: add a card to lock in your cleaner. ${offer.payment}`,
+    ],
+    "card",
+  );
+  return null;
+}
 
 export const actions = {
   chooseService(slug: ServiceSlug) {
@@ -337,60 +387,69 @@ export const actions = {
     set((s) => ({ answers: { ...s.answers, service: slug } }));
     stepEvent("service");
     if (slug === "commercial-cleaning") void say(svc.name, ["Got it. How big is the space?"], "size");
-    else void say(svc.name, ["Got it. How many bedrooms?"], "beds");
+    else void say(svc.name, ["Got it. How many bedrooms and bathrooms?"], "rooms");
   },
 
   chooseSize(tier: string) {
     set((s) => ({ answers: { ...s.answers, sizeTier: tier } }));
     stepEvent("size");
-    void say(tier, [zipAsk], "zip");
+    void say(tier, ["Your starting price is ready. Where should we send it?"], "contact");
   },
 
-  chooseBeds(value: number, label: string) {
-    set((s) => ({ answers: { ...s.answers, bedrooms: value } }));
-    stepEvent("beds");
-    void say(value === 0 ? "Studio" : `${label} bedroom${value === 1 ? "" : "s"}`, ["And bathrooms?"], "baths");
+  chooseRooms(bedrooms: number, bathrooms: number) {
+    set((s) => ({ answers: { ...s.answers, bedrooms, bathrooms } }));
+    stepEvent("rooms");
+    const beds = bedrooms === 0 ? "Studio" : `${bedrooms === 5 ? "5+" : bedrooms} bed`;
+    const baths = `${bathrooms === 4 ? "4+" : bathrooms} bath`;
+    void say(`${beds} · ${baths}`, [toSqft], "sqft");
   },
 
-  chooseBaths(value: number, label: string) {
-    set((s) => ({ answers: { ...s.answers, bathrooms: value } }));
-    stepEvent("baths");
-    const text = `${label} bathroom${value === 1 ? "" : "s"}`;
+  chooseSqft(label: string) {
+    set((s) => ({ answers: { ...s.answers, sqft: label } }));
+    stepEvent("sqft");
+    void say(
+      `${label} sq ft`,
+      ["Be honest, no judgment: how's it looking right now? This keeps your price accurate, so there are no surprises."],
+      "condition",
+    );
+  },
+
+  chooseCondition(id: string) {
+    const c = pricing.conditions.find((x) => x.id === id)!;
+    set((s) => ({ answers: { ...s.answers, condition: id } }));
+    stepEvent("condition");
     if (state.answers.service === "maintenance-cleaning") {
-      void say(text, ["How often? Recurring clients pay less for every clean."], "freq");
+      void say(c.label, ["How often? One-time, or a plan that saves you money on every visit?"], "freq");
     } else {
-      void say(text, [zipAsk], "zip");
+      void say(c.label, [toAddOns], "addons");
     }
   },
 
   chooseFreq(label: string) {
     set((s) => ({ answers: { ...s.answers, frequency: label } }));
     stepEvent("freq");
-    void say(label, [zipAsk], "zip");
+    void say(label, [toAddOns], "addons");
   },
 
-  submitZip(zip: string): string | null {
-    if (!/^\d{5}$/.test(zip)) return "Enter a 5-digit zip code.";
-    set((s) => ({ answers: { ...s.answers, zip } }));
-    stepEvent("zip");
+  chooseAddOns(ids: string[]) {
+    set((s) => ({ answers: { ...s.answers, addOns: ids } }));
+    stepEvent("addons");
+    const names = pricing.addOns.filter((a) => ids.includes(a.id)).map((a) => a.label);
     void say(
-      zip,
-      [
-        inServiceArea(zip) ? `Good news: we clean in ${zip}. Your exact price is ready.` : "You're just outside our usual area, but we'll confirm personally. Your price is ready.",
-        { id: 0, from: "bot", card: "preview" },
-        "Where should we text it? You'll be able to book from your phone in one tap.",
-      ],
+      names.length ? names.join(", ") : "No extras",
+      ["Your exact price is ready.", card("preview"), "Where should we send it? We'll text and email your quote so you can book in one tap."],
       "contact",
     );
-    return null;
   },
 
-  async submitContact(name: string, phone: string): Promise<string | null> {
-    const digits = phone.replace(/\D/g, "");
-    if (!name.trim()) return "What's your first name?";
-    if (digits.length < 10) return "Enter a 10-digit mobile number so we can text your price.";
+  async submitContact(f: { name: string; phone: string; email: string; zip: string }): Promise<string | null> {
+    const digits = f.phone.replace(/\D/g, "");
+    if (!f.name.trim()) return "What's your first name?";
+    if (digits.length < 10) return "Enter a 10-digit mobile number.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return "Enter your email so we can send your confirmation link.";
+    if (!/^\d{5}$/.test(f.zip.trim())) return "Enter your 5-digit zip code.";
 
-    const answers = { ...state.answers, name: name.trim(), phone };
+    const answers = { ...state.answers, name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim(), zip: f.zip.trim() };
     const q = currentQuote(answers);
     if (!q) return "Something went wrong. Please call or text us.";
 
@@ -406,29 +465,38 @@ export const actions = {
       quotedAt: Date.now(),
       alerted: false,
       booked: false,
+      cardAdded: false,
       messages: s.messages.filter((m) => !("card" in m && m.card === "preview")),
     }));
     track("quote_shown", { service: q.service, price: q.low, unit: q.unit });
     armIdle();
 
+    const coverage = inServiceArea(answers.zip) ? [] : [`${answers.zip} is just outside our usual area. We'll confirm coverage personally.`];
     await say(
-      `${name.trim().split(" ")[0]} · ${phone}`,
+      `${answers.name.split(" ")[0]} · ${answers.phone}`,
       [
-        { id: 0, from: "bot", card: "quote" },
-        { id: 0, from: "bot", card: "review" },
+        card("quote"),
+        ...coverage,
+        card("review"),
         q.kind === "startingAt"
-          ? "Final price comes after a quick walkthrough. Grab a time and we'll come to you."
-          : "Want it? Pick your day. Takes 10 seconds.",
+          ? "Final price comes after a quick walkthrough. Your next open walkthrough time is below."
+          : "Your next open time is below. One tap and it's yours.",
       ],
       "quote",
     );
     return null;
   },
 
-  startBooking() {
+  bookNextAvailable(): Promise<string | null> {
     armIdle();
-    track("quote_book_started", { service: state.answers.service });
-    void say(state.answers.service === "commercial-cleaning" ? "Book my walkthrough" : "Book my clean", ["Pick your day."], "date");
+    const n = nextAvailable();
+    return book(n.iso, n.window, `Book ${n.label}, ${n.window}`);
+  },
+
+  seeOtherTimes() {
+    armIdle();
+    track("quote_other_times");
+    void say("See other times", ["Pick your day."], "date");
   },
 
   chooseDate(iso: string, label: string) {
@@ -437,35 +505,40 @@ export const actions = {
     void say(label, ["What arrival window works best?"], "time");
   },
 
-  chooseWindow(w: string) {
-    armIdle();
-    const day = bookableDays().find((d) => d.iso === state.answers.date);
-    set((s) => ({ answers: { ...s.answers, window: w } }));
-    void say(w, [`${day?.label}, ${w}. Lock it in?`], "confirm");
+  chooseWindow(w: string): Promise<string | null> {
+    const date = state.answers.date!;
+    return book(date, w, `${dayLabel(date)}, ${w}`);
   },
 
-  changeTime() {
-    set({ step: "date" });
-  },
-
-  async confirmBooking(): Promise<string | null> {
-    const { date, window: win, name, phone } = state.answers;
-    if (!state.lead || !date || !win) return "Pick a day and time first.";
-    const res = await postLead({ ...state.lead, stage: "booked", booking: { date, window: win } });
-    if (!res.ok) return res.error ?? "Couldn't book that. Please call or text us.";
-    if (idleTimer) clearTimeout(idleTimer);
-    set({ booked: true });
-    track("quote_booked", { service: state.answers.service, date, window: win });
-    const day = bookableDays().find((d) => d.iso === date);
+  /**
+   * DEMO: no card data leaves the browser. The live version uses Stripe's
+   * hosted card element and saves a payment method to charge after the job.
+   */
+  async addCard(): Promise<string | null> {
+    const { date, window: win } = state.answers;
+    if (!state.lead || !date || !win) return "Book a time first.";
+    const res = await postLead({ ...state.lead, stage: "card_added", booking: { date, window: win }, cardOnFile: "demo" });
+    if (!res.ok) return res.error ?? "Couldn't save that. Please call or text us.";
+    set({ cardAdded: true });
+    track("quote_card_added", { service: state.answers.service });
     await say(
-      "Lock it in",
+      "Card added",
       [
-        `Done, ${name?.split(" ")[0]}. You're requested for ${day?.label}, ${win}.`,
-        `We'll text ${phone} to confirm your spot. Questions before then? Call or text ${business.contact.phoneDisplay}.`,
+        `You're locked in for ${dayLabel(date)}, ${win}. Your cleaner is being scheduled now.`,
+        `Nothing is charged today. ${offer.payment} See you soon.`,
       ],
       "done",
     );
     return null;
+  },
+
+  skipCard() {
+    track("quote_card_skipped");
+    void say(
+      "I'll add it from the email",
+      [`No problem. Use the link we sent to ${state.answers.email} to add your card and lock in your cleaner.`],
+      "done",
+    );
   },
 
   restart() {

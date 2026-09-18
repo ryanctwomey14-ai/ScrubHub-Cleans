@@ -47,6 +47,12 @@ Every page = **DarkHero with QuoteForm** → only what that page needs → proof
 - **Exit intent** (desktop, once per session) reminder with the held price.
 - **Analytics:** `lib/track.ts` pushes quote_* events to GTM dataLayer / PostHog.
 
+### Demo booking flow (client mockup, 2026-09-18)
+service → bedrooms + bathrooms (one screen) → square feet → condition (4 levels) → frequency (maintenance: one-time or plan) → add-ons (checkboxes, no prices shown) → name, mobile, email, zip → **itemized exact quote** + **next available slot** → one-tap "Book this time" (or see other times) → "You're booked, confirmation link sent to your email" → **demo card step** ("Lock in my cleaner", $0 today, charged only after the job is done and you're happy) → done.
+- Pricing: `content/pricing.ts` (base + per bed/bath + sq ft adder, × condition, + add-ons, − recurring %). All demo numbers.
+- Card step is a mockup: inputs have no names, autofill off, nothing is sent; the lead records `cardOnFile: "demo"`. Live version: Stripe hosted card element + saved payment method, charged after the job.
+- Lead stages now: quoted → booked → card_added (and abandoned → VA alert).
+
 ## Chatbot
 Unchanged: Claude Haiku 4.5 via `/api/chat`; knowledge from `content/business.ts` + `content/chatbot-knowledge.md`; `[[LEAD_FORM]]` token opens the in-chat lead form; 500-character messages, 20 requests/10 min and 80/day per visitor.
 

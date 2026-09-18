@@ -12,6 +12,7 @@ import {
   bookableDays,
   currentQuote,
   ensureStarted,
+  nextAvailable,
   questionPath,
   quoteStore,
   serviceOf,
@@ -31,7 +32,7 @@ const samplePricing = pricing.placeholder || offer.placeholder;
 /**
  * Instant quote assistant, built on Hormozi's value equation:
  *   dream outcome ↑ (spotless home, no effort)  ·  perceived likelihood ↑ (4.8★, 24-hour promise)
- *   time delay ↓ (price in seconds, earliest date)  ·  effort ↓ (taps, not typing)
+ *   time delay ↓ (real price in 60s, next open slot)  ·  effort ↓ (taps, one-tap booking)
  * Every assistant on the site shares one saved conversation (lib/quote-store).
  */
 export function QuoteAgent({ defaultService = "", className = "" }: { defaultService?: string; className?: string }) {
@@ -50,8 +51,8 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const card = s.step === "quote" ? el.querySelector<HTMLElement>("[data-quote-card]") : null;
-    el.scrollTo({ top: card ? card.offsetTop - 12 : el.scrollHeight, behavior: "smooth" });
+    const target = s.step === "quote" ? el.querySelector<HTMLElement>("[data-quote-card]") : null;
+    el.scrollTo({ top: target ? target.offsetTop - 12 : el.scrollHeight, behavior: "smooth" });
   }, [s.messages.length, s.typing, s.step]);
 
   const q = currentQuote(s.answers);
@@ -60,9 +61,10 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
   const asking = qIndex >= 0 && !s.quotedAt;
   // Endowed progress: the bar starts with a head start and only moves forward.
   const progress = s.quotedAt ? 100 : asking ? Math.round(18 + (72 * qIndex) / path.length) : 12;
-  const secondsLeft = asking ? Math.max(5, (path.length - qIndex) * 5) : 0;
+  const secondsLeft = asking ? Math.max(5, (path.length - qIndex) * 8) : 0;
   const days = bookableDays();
-  const earliest = days[0];
+  const next = nextAvailable();
+  const tall = s.step === "quote" || s.step === "card";
 
   const run = async (fn: () => Promise<string | null>) => {
     setSending(true);
@@ -71,6 +73,16 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
     setSending(false);
     if (err) setError(err);
   };
+
+  const status = s.cardAdded
+    ? "Locked in"
+    : s.booked
+      ? "Booked"
+      : s.quotedAt
+        ? "Price unlocked"
+        : asking
+          ? `${qIndex + 1} of ${path.length} · ~${secondsLeft}s`
+          : "Starting…";
 
   return (
     <div
@@ -87,7 +99,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="display whitespace-nowrap text-[1.125rem] leading-tight sm:text-[1.25rem] md:text-[1.375rem]">
-              Get Your Instant Price
+              Real Quote in 60 Seconds
             </h2>
             <p className="flex items-center gap-1.5 whitespace-nowrap text-[0.8125rem] text-stone">
               <Stars className="text-[#FBBC04]" size={12} />
@@ -96,7 +108,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
           </div>
           {samplePricing && (
             <span
-              title="Prices and offer come from content/pricing.ts and are placeholders until the owner approves them."
+              title="Prices, offer, and availability are demo placeholders from content/pricing.ts."
               className="shrink-0 rounded-md bg-[#fff4e5] px-2 py-1 text-[0.625rem] font-bold uppercase tracking-wide text-[#9a5b00]"
             >
               Sample<span className="hidden sm:inline"> pricing</span>
@@ -111,7 +123,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
             />
           </div>
           <span className="shrink-0 text-[0.6875rem] font-bold uppercase tracking-wide text-stone" aria-live="polite">
-            {s.booked ? "Booked" : s.quotedAt ? "Price unlocked" : asking ? `${qIndex + 1} of ${path.length} · ~${secondsLeft}s` : "Starting…"}
+            {status}
           </span>
         </div>
       </div>
@@ -122,7 +134,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
         data-lenis-prevent
         aria-live="polite"
         className={`relative space-y-2.5 overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-width:thin] transition-[height] duration-500 md:px-6 ${
-          s.step === "quote" ? "h-[24rem] md:h-[25rem]" : "h-[17rem] md:h-[18rem]"
+          tall ? "h-[24rem] md:h-[25rem]" : "h-[16rem] md:h-[17rem]"
         }`}
       >
         {s.messages.map((m) => (
@@ -163,65 +175,89 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
               </Chips>
             )}
 
-            {s.step === "beds" && (
-              <Chips cols={6}>
-                {BEDROOMS.map((b) => (
-                  <Chip key={b.label} onClick={() => actions.chooseBeds(b.value, b.label)}>
-                    {b.label}
+            {s.step === "rooms" && <RoomsInput />}
+
+            {s.step === "sqft" && (
+              <Chips cols={3}>
+                {pricing.sqftTiers.map((t) => (
+                  <Chip key={t.label} onClick={() => actions.chooseSqft(t.label)}>
+                    <span className="block">{t.label}</span>
+                    <span className="block text-[0.6875rem] font-semibold text-stone">sq ft</span>
                   </Chip>
                 ))}
               </Chips>
             )}
 
-            {s.step === "baths" && (
-              <Chips cols={4}>
-                {BATHROOMS.map((b) => (
-                  <Chip key={b.label} onClick={() => actions.chooseBaths(b.value, b.label)}>
-                    {b.label}
-                  </Chip>
+            {s.step === "condition" && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {pricing.conditions.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => actions.chooseCondition(c.id)}
+                    className="rounded-xl border-[1.5px] border-sand bg-white px-3.5 py-2.5 text-left transition-all duration-200 hover:-translate-y-px hover:border-hub"
+                  >
+                    <span className="block text-[0.9375rem] font-bold">{c.label}</span>
+                    <span className="block text-[0.75rem] leading-snug text-stone">{c.detail}</span>
+                  </button>
                 ))}
-              </Chips>
+              </div>
             )}
 
             {s.step === "freq" && (
-              <Chips cols={3}>
+              <Chips cols={2}>
                 {pricing.frequencies.map((f) => {
                   const rec = f.label === pricing.recommendedFrequency;
                   return (
                     <Chip key={f.label} highlight={rec} onClick={() => actions.chooseFreq(f.label)}>
                       {rec && <span className="mb-0.5 block text-[0.625rem] font-bold uppercase tracking-wide text-hub">Recommended</span>}
                       <span className="block">{f.label}</span>
-                      {f.discount > 0 && <span className="block text-[0.6875rem] font-bold text-[#15803d]">Save {Math.round(f.discount * 100)}%</span>}
+                      <span className={`block text-[0.6875rem] font-bold ${f.discount > 0 ? "text-[#15803d]" : "text-stone"}`}>
+                        {f.discount > 0 ? `Save ${Math.round(f.discount * 100)}% every visit` : "Full price"}
+                      </span>
                     </Chip>
                   );
                 })}
               </Chips>
             )}
 
-            {s.step === "zip" && <ZipInput onSubmit={(zip) => setError(actions.submitZip(zip))} />}
+            {s.step === "addons" && <AddOnsInput />}
 
             {s.step === "contact" && (
-              <ContactInput sending={sending} onSubmit={(name, phone) => run(() => actions.submitContact(name, phone))} />
+              <ContactInput sending={sending} onSubmit={(f) => run(() => actions.submitContact(f))} />
             )}
 
             {s.step === "quote" && q && (
               <div className="grid gap-2.5">
-                <button type="button" onClick={actions.startBooking} className="btn btn-primary !h-14 w-full !text-base">
-                  {q.kind === "startingAt" ? "Book my walkthrough" : "Book my clean"}
-                  <span className="text-[0.8125rem] font-semibold opacity-80">· earliest {earliest?.short} {earliest?.date}</span>
+                <div className="flex items-center justify-between gap-3 rounded-xl border-[1.5px] border-hub/30 bg-white px-4 py-3">
+                  <span>
+                    <span className="block text-[0.6875rem] font-bold uppercase tracking-wide text-hub">Next available</span>
+                    <span className="block text-[1rem] font-bold">
+                      {next.label} · {next.window}
+                    </span>
+                  </span>
+                  <Icon name="clock" size={20} className="text-hub" />
+                </div>
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() => run(actions.bookNextAvailable)}
+                  className="btn btn-primary !h-14 w-full !text-base"
+                >
+                  {sending ? "Booking…" : q.kind === "startingAt" ? "Book this walkthrough" : "Book this time"}
                   <Icon name="arrow" size={18} className="btn-arrow" />
                 </button>
                 <div className="flex items-center justify-between text-[0.8125rem]">
+                  <button type="button" onClick={actions.seeOtherTimes} className="font-bold text-hub hover:underline">
+                    See other times
+                  </button>
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event("scrubhub:chat"))}
-                    className="font-bold text-hub hover:underline"
+                    className="font-bold text-ink hover:underline"
                   >
                     I have a question
                   </button>
-                  <a href={business.contact.phoneHref} className="font-bold text-ink hover:underline">
-                    Call {business.contact.phoneDisplay}
-                  </a>
                 </div>
               </div>
             )}
@@ -259,33 +295,19 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
             {s.step === "time" && (
               <Chips cols={2}>
                 {booking.windows.map((w) => (
-                  <Chip key={w} onClick={() => actions.chooseWindow(w)}>
+                  <Chip key={w} onClick={() => run(() => actions.chooseWindow(w))}>
                     {w}
                   </Chip>
                 ))}
               </Chips>
             )}
 
-            {s.step === "confirm" && (
-              <div className="grid gap-2.5">
-                <button
-                  type="button"
-                  disabled={sending}
-                  onClick={() => run(actions.confirmBooking)}
-                  className="btn btn-primary !h-14 w-full !text-base"
-                >
-                  {sending ? "Booking…" : "Lock it in"} <Icon name="check" size={18} strokeWidth={2.2} />
-                </button>
-                <button type="button" onClick={actions.changeTime} className="text-[0.8125rem] font-bold text-stone hover:text-ink">
-                  Pick a different time
-                </button>
-              </div>
-            )}
+            {s.step === "card" && <CardInput sending={sending} onSubmit={() => run(actions.addCard)} />}
 
             {s.step === "done" && (
               <div className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2 text-[0.875rem] font-bold text-[#15803d]">
-                  <Icon name="check" size={17} strokeWidth={2.4} /> Booking requested
+                  <Icon name="check" size={17} strokeWidth={2.4} /> {s.cardAdded ? "Booked & locked in" : "Booked"}
                 </span>
                 <button type="button" onClick={actions.restart} className="text-[0.8125rem] font-bold text-stone hover:text-ink">
                   New quote
@@ -299,7 +321,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
               </p>
             )}
 
-            {(s.step === "service" || s.step === "beds" || s.step === "size") && !s.quotedAt && (
+            {(s.step === "service" || s.step === "rooms" || s.step === "size") && !s.quotedAt && (
               <p className="mt-3 text-center text-[0.75rem] text-stone">
                 No calls needed. Rather talk?{" "}
                 <a href={business.contact.phoneHref} className="font-bold text-ink hover:underline">
@@ -325,6 +347,7 @@ function Message({ m }: { m: Msg }) {
   if ("card" in m) {
     if (m.card === "preview") return <PreviewCard />;
     if (m.card === "quote") return <QuoteCard />;
+    if (m.card === "booked") return <BookedCard />;
     return <ReviewCard />;
   }
   return m.from === "bot" ? (
@@ -336,7 +359,7 @@ function Message({ m }: { m: Msg }) {
   );
 }
 
-/** Curiosity gap: the price exists, it just needs a phone number to unlock. */
+/** Curiosity gap: the price exists, it just needs contact details to unlock. */
 function PreviewCard() {
   return (
     <div className="agent-in on-ink relative overflow-hidden rounded-2xl bg-ink px-4 py-4 text-white">
@@ -345,7 +368,7 @@ function PreviewCard() {
         $1,234
       </p>
       <p className="mt-2 select-none text-[0.75rem] text-mist blur-[4px]" aria-hidden="true">
-        Includes everything below
+        Itemized, with your next open time
       </p>
       <span className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[0.75rem] font-bold ring-1 ring-white/15">
         <Icon name="key" size={14} /> Unlocks below
@@ -360,23 +383,11 @@ function QuoteCard() {
   const svc = serviceOf(s.answers.service);
   if (!q || !svc) return null;
   const first = s.answers.name?.split(" ")[0];
-  const summary =
-    q.kind === "startingAt"
-      ? s.answers.sizeTier
-      : [s.answers.bedrooms === 0 ? "Studio" : `${s.answers.bedrooms} bed`, `${s.answers.bathrooms} bath`, s.answers.frequency]
-          .filter(Boolean)
-          .join(" · ");
-  const stack = [
-    svc.focus[0],
-    svc.focus[1],
-    "Cleaned to your priorities, not a generic checklist",
-    `${business.guarantee.hours}-hour make-it-right promise: miss anything, we come back and fix it`,
-  ];
 
   return (
     <div data-quote-card className="agent-in on-ink overflow-hidden rounded-2xl bg-ink text-white">
       <div className="px-4 pb-3 pt-4">
-        <p className="text-[0.8125rem] text-mist">{first ? `${first}, your price:` : "Your price:"}</p>
+        <p className="text-[0.8125rem] text-mist">{first ? `${first}, your quote:` : "Your quote:"}</p>
         <p className="display mt-1 text-[2.25rem] leading-none">
           {formatQuote(q)}
           <span className="ml-1.5 align-middle font-sans text-[0.8125rem] font-semibold tracking-normal text-mist">{q.unit}</span>
@@ -387,36 +398,62 @@ function QuoteCard() {
             <span className="font-bold text-glint">You save ${q.savings} every clean</span>
           </p>
         ) : null}
-        <p className="mt-1.5 text-[0.75rem] text-mist">
-          {svc.name}
-          {summary && ` · ${summary}`}
-        </p>
       </div>
-      <ul className="space-y-1.5 border-t border-white/10 px-4 py-3 text-[0.8125rem]">
-        {stack.map((p) => (
-          <li key={p} className="flex gap-2">
-            <Icon name="check" size={14} strokeWidth={2.4} className="mt-0.5 shrink-0 text-glint" />
-            {p}
-          </li>
+
+      {/* Itemized: a price that shows its work feels real */}
+      <dl className="space-y-1 border-t border-white/10 px-4 py-3 text-[0.8125rem]">
+        {q.lines.map((l) => (
+          <div key={l.label} className="flex justify-between gap-3">
+            <dt className="text-white/80">{l.label}</dt>
+            <dd className={`shrink-0 font-semibold tabular-nums ${l.amount < 0 ? "text-glint" : ""}`}>
+              {l.amount < 0 ? `−$${Math.abs(l.amount)}` : `$${l.amount}`}
+            </dd>
+          </div>
         ))}
-      </ul>
-      {(offer.bonus || offer.priceLockDays) && (
-        <div className="space-y-1.5 border-t border-white/10 bg-white/[0.04] px-4 py-3 text-[0.8125rem]">
-          {offer.bonus && (
-            <p className="flex gap-2">
-              <Icon name="badge" size={15} className="mt-0.5 shrink-0 text-[#FBBC04]" />
-              <span>
-                <strong>Bonus:</strong> {offer.bonus}
-              </span>
-            </p>
-          )}
-          {offer.priceLockDays > 0 && (
-            <p className="flex gap-2 text-mist">
-              <Icon name="clock" size={15} className="mt-0.5 shrink-0" />
-              Price held for {offer.priceLockDays} days. We&rsquo;ll text you a link to book any time.
-            </p>
-          )}
+        <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5 font-bold">
+          <dt>Total {q.unit}</dt>
+          <dd className="tabular-nums">{formatQuote(q)}</dd>
         </div>
+      </dl>
+
+      <ul className="space-y-1.5 border-t border-white/10 px-4 py-3 text-[0.8125rem]">
+        {["Cleaned to your priorities, not a generic checklist", `${business.guarantee.hours}-hour make-it-right promise: miss anything, we come back and fix it`].map(
+          (p) => (
+            <li key={p} className="flex gap-2">
+              <Icon name="check" size={14} strokeWidth={2.4} className="mt-0.5 shrink-0 text-glint" />
+              {p}
+            </li>
+          ),
+        )}
+        {offer.bonus && (
+          <li className="flex gap-2">
+            <Icon name="badge" size={15} className="mt-0.5 shrink-0 text-[#FBBC04]" />
+            <span>
+              <strong>Bonus:</strong> {offer.bonus}
+            </span>
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+function BookedCard() {
+  const s = useSyncExternalStore(quoteStore.subscribe, quoteStore.get, quoteStore.getServer);
+  const q = currentQuote(s.answers);
+  const day = bookableDays().find((d) => d.iso === s.answers.date);
+  return (
+    <div className="agent-in rounded-2xl border-[1.5px] border-[#15803d]/30 bg-[#f0fdf4] px-4 py-3.5">
+      <p className="flex items-center gap-2 text-[0.8125rem] font-bold uppercase tracking-wide text-[#15803d]">
+        <Icon name="check" size={16} strokeWidth={2.6} /> You&rsquo;re booked
+      </p>
+      <p className="mt-1.5 text-[1.0625rem] font-bold">
+        {day?.label ?? s.answers.date} · {s.answers.window}
+      </p>
+      {q && (
+        <p className="text-[0.8125rem] text-stone">
+          {q.serviceName} · {formatQuote(q)} {q.unit}
+        </p>
       )}
     </div>
   );
@@ -444,13 +481,24 @@ function Chips({ children, cols }: { children: React.ReactNode; cols?: number })
   return <div className={cols ? `grid gap-2 ${grid}` : "flex flex-wrap gap-2"}>{children}</div>;
 }
 
-function Chip({ children, onClick, highlight }: { children: React.ReactNode; onClick: () => void; highlight?: boolean }) {
+function Chip({
+  children,
+  onClick,
+  highlight,
+  selected,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  highlight?: boolean;
+  selected?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-11 rounded-xl border-[1.5px] bg-white px-3 py-2 text-[0.9375rem] font-bold text-ink transition-all duration-200 hover:-translate-y-px hover:border-hub hover:text-hub active:translate-y-0 ${
-        highlight ? "border-hub ring-2 ring-hub/15" : "border-sand"
+      aria-pressed={selected}
+      className={`min-h-11 rounded-xl border-[1.5px] px-3 py-2 text-[0.9375rem] font-bold transition-all duration-200 hover:-translate-y-px hover:border-hub active:translate-y-0 ${
+        selected ? "border-hub bg-hub text-white" : highlight ? "border-hub bg-white text-ink ring-2 ring-hub/15" : "border-sand bg-white text-ink hover:text-hub"
       }`}
     >
       {children}
@@ -458,72 +506,178 @@ function Chip({ children, onClick, highlight }: { children: React.ReactNode; onC
   );
 }
 
-function ZipInput({ onSubmit }: { onSubmit: (zip: string) => void }) {
-  const [zip, setZip] = useState("");
+/** Bedrooms + bathrooms on one screen; advances the moment both are picked. */
+function RoomsInput() {
+  const [beds, setBeds] = useState<number | null>(null);
+  const [baths, setBaths] = useState<number | null>(null);
+  const pick = (b: number | null, t: number | null) => {
+    if (b !== null && t !== null) actions.chooseRooms(b, t);
+  };
   return (
-    <form
-      className="flex gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(zip.trim());
-      }}
-    >
-      <label htmlFor="agent-zip" className="sr-only">Zip code</label>
-      <input
-        id="agent-zip"
-        autoFocus
-        inputMode="numeric"
-        autoComplete="postal-code"
-        maxLength={5}
-        value={zip}
-        onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
-        placeholder="Zip code"
-        className="field !h-12 flex-1"
-      />
-      <button type="submit" className="btn btn-primary !h-12 !px-5">
-        Next <Icon name="arrow" size={16} />
-      </button>
-    </form>
+    <div className="grid gap-3">
+      <div>
+        <p className="mb-1.5 text-[0.75rem] font-bold uppercase tracking-wide text-stone">Bedrooms</p>
+        <Chips cols={6}>
+          {BEDROOMS.map((b) => (
+            <Chip
+              key={b.label}
+              selected={beds === b.value}
+              onClick={() => {
+                setBeds(b.value);
+                pick(b.value, baths);
+              }}
+            >
+              {b.label}
+            </Chip>
+          ))}
+        </Chips>
+      </div>
+      <div>
+        <p className="mb-1.5 text-[0.75rem] font-bold uppercase tracking-wide text-stone">Bathrooms</p>
+        <Chips cols={4}>
+          {BATHROOMS.map((b) => (
+            <Chip
+              key={b.label}
+              selected={baths === b.value}
+              onClick={() => {
+                setBaths(b.value);
+                pick(beds, b.value);
+              }}
+            >
+              {b.label}
+            </Chip>
+          ))}
+        </Chips>
+      </div>
+    </div>
   );
 }
 
-function ContactInput({ onSubmit, sending }: { onSubmit: (name: string, phone: string) => void; sending: boolean }) {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+function AddOnsInput() {
+  const [picked, setPicked] = useState<string[]>([]);
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+
+  return (
+    <div>
+      <div className="grid max-h-[11.5rem] grid-cols-2 gap-2 overflow-y-auto pr-1 [scrollbar-width:thin]" data-lenis-prevent>
+        {pricing.addOns.map((a) => {
+          const on = picked.includes(a.id);
+          return (
+            <label
+              key={a.id}
+              className={`flex cursor-pointer items-center gap-2.5 rounded-xl border-[1.5px] bg-white px-3 py-2.5 transition-colors ${
+                on ? "border-hub bg-hub/5" : "border-sand hover:border-hub/50"
+              }`}
+            >
+              <input type="checkbox" checked={on} onChange={() => toggle(a.id)} className="h-4 w-4 shrink-0 accent-[#1a5fe8]" />
+              <span className="min-w-0 flex-1 text-[0.8125rem] font-bold leading-tight">{a.label}</span>
+            </label>
+          );
+        })}
+      </div>
+      <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+        <button type="button" onClick={() => actions.chooseAddOns(picked)} className="btn btn-primary !h-12">
+          {picked.length ? `Add ${picked.length} extra${picked.length > 1 ? "s" : ""}` : "Continue"}
+          <Icon name="arrow" size={16} />
+        </button>
+        {picked.length === 0 && (
+          <button type="button" onClick={() => actions.chooseAddOns([])} className="btn btn-ghost !h-12 !px-4">
+            Skip
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ContactInput({
+  onSubmit,
+  sending,
+}: {
+  onSubmit: (f: { name: string; phone: string; email: string; zip: string }) => void;
+  sending: boolean;
+}) {
+  const [f, setF] = useState({ name: "", phone: "", email: "", zip: "" });
+  const bind = (k: keyof typeof f) => ({
+    value: f[k],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      setF((p) => ({ ...p, [k]: k === "zip" ? e.target.value.replace(/\D/g, "").slice(0, 5) : e.target.value })),
+  });
   return (
     <form
       className="grid gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit(name, phone);
+        onSubmit(f);
       }}
     >
-      <div className="grid grid-cols-[1fr_1.25fr] gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <label htmlFor="agent-name" className="sr-only">First name</label>
-        <input
-          id="agent-name"
-          autoFocus
-          autoComplete="given-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="First name"
-          className="field !h-12"
-        />
+        <input id="agent-name" autoFocus autoComplete="given-name" placeholder="First name" className="field !h-12" {...bind("name")} />
         <label htmlFor="agent-phone" className="sr-only">Mobile number</label>
-        <input
-          id="agent-phone"
-          type="tel"
-          autoComplete="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Mobile number"
-          className="field !h-12"
-        />
+        <input id="agent-phone" type="tel" autoComplete="tel" placeholder="Mobile number" className="field !h-12" {...bind("phone")} />
+      </div>
+      <div className="grid grid-cols-[1fr_7rem] gap-2">
+        <label htmlFor="agent-email" className="sr-only">Email</label>
+        <input id="agent-email" type="email" autoComplete="email" placeholder="Email" className="field !h-12" {...bind("email")} />
+        <label htmlFor="agent-zip" className="sr-only">Zip code</label>
+        <input id="agent-zip" inputMode="numeric" autoComplete="postal-code" placeholder="Zip" className="field !h-12" {...bind("zip")} />
       </div>
       <button type="submit" disabled={sending} className="btn btn-primary !h-12 w-full">
         {sending ? "Unlocking…" : "Unlock my price"} <Icon name="key" size={16} />
       </button>
       <p className="text-[0.625rem] leading-snug text-stone">{smsConsent}</p>
+    </form>
+  );
+}
+
+/**
+ * DEMO card step. Nothing typed here is sent or stored anywhere: the fields
+ * have no names, autofill is off, and submit only records "card added (demo)".
+ * The live version replaces this with Stripe's hosted card element.
+ */
+function CardInput({ onSubmit, sending }: { onSubmit: () => void; sending: boolean }) {
+  return (
+    <form
+      className="grid gap-2"
+      autoComplete="off"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+    >
+      <div className="rounded-xl border-[1.5px] border-sand bg-white p-3">
+        <label htmlFor="demo-card" className="sr-only">Card number (demo)</label>
+        <input
+          id="demo-card"
+          inputMode="numeric"
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
+          placeholder="Card number"
+          className="w-full bg-transparent text-[0.9375rem] outline-none placeholder:text-[#8791a6]"
+        />
+        <div className="mt-2 grid grid-cols-3 gap-2 border-t border-sand pt-2">
+          <label htmlFor="demo-exp" className="sr-only">Expiry (demo)</label>
+          <input id="demo-exp" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="MM / YY" className="bg-transparent text-[0.9375rem] outline-none placeholder:text-[#8791a6]" />
+          <label htmlFor="demo-cvc" className="sr-only">CVC (demo)</label>
+          <input id="demo-cvc" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="CVC" className="bg-transparent text-[0.9375rem] outline-none placeholder:text-[#8791a6]" />
+          <label htmlFor="demo-zip" className="sr-only">Billing zip (demo)</label>
+          <input id="demo-zip" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="Zip" className="bg-transparent text-[0.9375rem] outline-none placeholder:text-[#8791a6]" />
+        </div>
+      </div>
+      <button type="submit" disabled={sending} className="btn btn-primary !h-12 w-full">
+        {sending ? "Locking in…" : "Lock in my cleaner"} <Icon name="shield" size={16} />
+      </button>
+      <p className="flex items-center justify-center gap-1.5 text-center text-[0.75rem] font-semibold text-ink">
+        <Icon name="check" size={13} strokeWidth={2.6} className="text-[#15803d]" /> $0 today. {offer.payment}
+      </p>
+      <div className="flex items-center justify-between text-[0.6875rem] text-stone">
+        <span>Demo: no card details are sent or saved.</span>
+        <button type="button" onClick={actions.skipCard} className="font-bold hover:text-ink">
+          Add it from the email instead
+        </button>
+      </div>
     </form>
   );
 }

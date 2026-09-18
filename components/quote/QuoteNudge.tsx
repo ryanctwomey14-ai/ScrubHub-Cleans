@@ -5,7 +5,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { offer } from "@/content/pricing";
 import { formatQuote } from "@/lib/quote";
-import { actions, currentQuote, quoteStore } from "@/lib/quote-store";
+import { currentQuote, quoteStore } from "@/lib/quote-store";
 import { scrollToQuote } from "@/lib/scroll-to-quote";
 import { track } from "@/lib/track";
 
@@ -39,7 +39,6 @@ export function QuoteNudge() {
   const go = () => {
     track("quote_nudge_click");
     setShow(false);
-    if (s.step === "quote") actions.startBooking();
     if (!scrollToQuote()) router.push("/contact#quote");
   };
 
@@ -61,9 +60,9 @@ export function QuoteNudge() {
       <p className="display mt-2 pr-6 text-[1.375rem] leading-tight">
         Your {formatQuote(q)} price is held for {offer.priceLockDays} days.
       </p>
-      <p className="mt-2 text-[0.875rem] text-white/75">Pick your day now. It takes 10 seconds.</p>
+      <p className="mt-2 text-[0.875rem] text-white/75">Your next open time is one tap away.</p>
       <button type="button" onClick={go} className="btn btn-primary mt-4 w-full">
-        Pick my day <Icon name="arrow" size={16} className="btn-arrow" />
+        Book my time <Icon name="arrow" size={16} className="btn-arrow" />
       </button>
     </div>
   );

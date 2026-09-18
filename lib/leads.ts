@@ -6,11 +6,12 @@ import { sealToken } from "@/lib/token";
 /**
  * Lead lifecycle from the quote assistant:
  *   quoted    → saw a price (contact captured before the reveal)
- *   booked    → picked a date and arrival window
+ *   booked    → took an arrival slot (next available or one they picked)
+ *   card_added→ added a card to lock in the cleaner (demo: no card data is ever sent)
  *   abandoned → got a price but left or went quiet without booking → VA alert
  * Other sources (chat, plain forms) arrive as "inquiry".
  */
-export type LeadStage = "inquiry" | "quoted" | "booked" | "abandoned";
+export type LeadStage = "inquiry" | "quoted" | "booked" | "card_added" | "abandoned";
 
 export interface Lead {
   name: string;
@@ -26,7 +27,15 @@ export interface Lead {
   /** Recomputed server-side from the inputs; client-sent prices are ignored. */
   quote?: Quote & {
     display: string;
-    details: { bedrooms?: number; bathrooms?: number; frequency?: string; sizeTier?: string };
+    details: {
+      bedrooms?: number;
+      bathrooms?: number;
+      sqft?: string;
+      condition?: string;
+      addOns?: string[];
+      frequency?: string;
+      sizeTier?: string;
+    };
   };
   booking?: { date: string; window: string };
   /** Last few chat turns, when the lead came from the concierge. */
@@ -43,11 +52,15 @@ export interface ResumeData {
   service: ServiceSlug;
   bedrooms?: number;
   bathrooms?: number;
+  sqft?: string;
+  condition?: string;
+  addOns?: string[];
   frequency?: string;
   sizeTier?: string;
   zip?: string;
   name: string;
   phone: string;
+  email?: string;
 }
 
 /**
@@ -62,11 +75,15 @@ export function customerFollowUp(lead: Lead) {
       service: lead.quote.service,
       bedrooms: d.bedrooms,
       bathrooms: d.bathrooms,
+      sqft: d.sqft,
+      condition: d.condition,
+      addOns: d.addOns,
       frequency: d.frequency,
       sizeTier: d.sizeTier,
       zip: lead.zip,
       name: lead.name,
       phone: lead.phone,
+      email: lead.email,
     } satisfies ResumeData,
     offer.priceLockDays,
   );
@@ -85,9 +102,15 @@ function parseQuote(raw: unknown): Lead["quote"] {
   const r = raw as Record<string, unknown>;
   const slug = clean(r.service, 60) as ServiceSlug | undefined;
   if (!slug) return undefined;
+  const knownAddOns = new Set(pricing.addOns.map((a) => a.id));
   const details = {
     bedrooms: num(r.bedrooms),
     bathrooms: num(r.bathrooms),
+    sqft: clean(r.sqft, 20),
+    condition: clean(r.condition, 20),
+    addOns: Array.isArray(r.addOns)
+      ? r.addOns.filter((a): a is string => typeof a === "string" && knownAddOns.has(a)).slice(0, 20)
+      : undefined,
     frequency: clean(r.frequency, 40),
     sizeTier: clean(r.sizeTier, 40),
   };
@@ -110,7 +133,9 @@ export function parseLead(body: Record<string, unknown>): { lead?: Lead; error?:
   const email = clean(body.email, 160);
   const source = body.source === "chat" || body.source === "quote-agent" ? body.source : "quote-form";
   const stage: LeadStage =
-    body.stage === "quoted" || body.stage === "booked" || body.stage === "abandoned" ? body.stage : "inquiry";
+    body.stage === "quoted" || body.stage === "booked" || body.stage === "card_added" || body.stage === "abandoned"
+      ? body.stage
+      : "inquiry";
 
   if (!name) return { error: "Please tell us your name." };
   if (!phone && !email) return { error: "Please add a phone number or email so we can reach you." };
@@ -119,8 +144,9 @@ export function parseLead(body: Record<string, unknown>): { lead?: Lead; error?:
 
   const serviceNames = business.services.map((s) => s.name);
   const service = clean(body.service, 80);
-  const booking = stage === "booked" ? parseBooking(body.booking) : undefined;
-  if (stage === "booked" && !booking) return { error: "Please pick a date and time." };
+  const needsSlot = stage === "booked" || stage === "card_added";
+  const booking = needsSlot ? parseBooking(body.booking) : undefined;
+  if (needsSlot && !booking) return { error: "Please pick a date and time." };
 
   return {
     lead: {
@@ -156,7 +182,9 @@ function headline(lead: Lead) {
     case "abandoned":
       return `📞 CALL NOW: ${who} got a quote but did NOT book. ${what}.`;
     case "booked":
-      return `✅ Booking request: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window}. Text to confirm.`;
+      return `✅ Booked: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window}. Send the email confirmation link.`;
+    case "card_added":
+      return `💳 Card on file, cleaner can be scheduled: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window}.`;
     case "quoted":
       return `💬 New quote: ${who}, ${what}.`;
     default:
