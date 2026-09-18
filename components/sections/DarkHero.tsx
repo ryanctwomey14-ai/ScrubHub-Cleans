@@ -20,7 +20,7 @@ export function DarkHero({
   banner,
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: React.ReactNode;
   lede?: React.ReactNode;
   photoBrief: string;
@@ -112,11 +112,11 @@ export function DarkHero({
               {banner}
             </div>
           )}
-          <p data-reveal className="eyebrow">{eyebrow}</p>
+          {eyebrow && <p data-reveal className="eyebrow">{eyebrow}</p>}
           <h1
             data-reveal
             data-reveal-delay="0.05"
-            className={`display mt-5 ${home ? "text-[clamp(2.5rem,4.4vw,4rem)]" : "text-[clamp(2.5rem,5vw,4.25rem)]"}`}
+            className={`display ${eyebrow ? "mt-5" : ""} ${home ? "text-[clamp(2.5rem,4.4vw,4rem)]" : "text-[clamp(2.5rem,5vw,4.25rem)]"}`}
           >
             {title}
           </h1>

@@ -157,6 +157,7 @@ export const business = {
       startingPrice: null,
       photoBrief:
         "Sunlit kitchen, freshly finished: clear counters, a single bowl of lemons, soft morning light. No people, no cleaning tools.",
+      image: "/photos/maintenance-cleaning.jpg",
       seoTitle: "Recurring House Cleaning in Pittsburgh",
       seoDescription:
         "Weekly, bi-weekly, or monthly house cleaning in Pittsburgh, tailored to your home. Rated 4.8 stars, with a 24-hour make-it-right promise.",
@@ -184,6 +185,7 @@ export const business = {
       startingPrice: null,
       photoBrief:
         "Close, low-angle shot of a spotless bathroom vanity: polished faucet, folded white towel, natural light. No products or tools in frame.",
+      image: "/photos/deep-cleaning.jpg",
       seoTitle: "Deep Cleaning Services in Pittsburgh",
       seoDescription:
         "Top-to-bottom deep cleaning in Pittsburgh for baseboards, fixtures, built-up grime, and every overlooked corner. Backed by our 24-hour make-it-right promise.",
@@ -211,6 +213,7 @@ export const business = {
       startingPrice: null,
       photoBrief:
         "Empty, bright room with bare hardwood floors and afternoon light through a window. Keys resting on a clean windowsill.",
+      image: "/photos/move-in-move-out-cleaning.jpg",
       seoTitle: "Move-In & Move-Out Cleaning in Pittsburgh",
       seoDescription:
         "Move-in and move-out cleaning in Pittsburgh for tenants, owners, and landlords. Empty-home detail cleaning timed to your move date.",
@@ -238,6 +241,7 @@ export const business = {
       startingPrice: null,
       photoBrief:
         "Styled guest bedroom: crisp white bedding, folded towels at the foot of the bed, a small welcome card on the nightstand.",
+      image: "/photos/airbnb-turnover-cleaning.jpg",
       seoTitle: "Airbnb Turnover Cleaning in Pittsburgh",
       seoDescription:
         "Reliable Airbnb and short-term rental turnover cleaning in Pittsburgh. Guest-ready resets timed to your check-outs and check-ins.",

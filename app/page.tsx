@@ -14,7 +14,6 @@ export default function HomePage() {
     <>
       <DarkHero
         size="home"
-        eyebrow={`Trusted by your ${business.location.city} neighbors`}
         title={
           <>
             {business.stats.homesCleanedPhrase} {business.location.city} <br className="hidden sm:block" />
