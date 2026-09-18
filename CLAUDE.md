@@ -69,6 +69,11 @@ Replaces the earlier "Porcelain" direction, which the client felt read as AI-gen
 - **Motion:** restrained fade-up reveals + Lenis. The pinned clock and arch reveal were removed for speed and focus.
 - **Logo:** the logo's sparkle is the only sparkle on the site; dark-background logo variant used in the header.
 
+## Hosting (client draft)
+- GitHub: https://github.com/ryanctwomey14-ai/ScrubHub-Cleans (public). Netlify project `scrubhub-cleans-draft` (LeadTide team) → https://scrubhub-cleans-draft.netlify.app
+- Netlify env: `SITE_DRAFT=true` (noindex + robots disallow), `NEXT_PUBLIC_SITE_URL` = the draft URL. At launch: set `SITE_LIVE=true` and the real domain.
+- Redeploy: the Netlify Next.js runtime fails to publish static files when built from this folder (spaces/parentheses in the path). Push to GitHub, then build from the clean clone: `cd /c/nb/scrubhub && git pull && netlify deploy --build --prod`. Use `--build` (a `--no-build` deploy publishes `.next` and 404s every /public file).
+
 ## Process
 Phases, each ending in a checkpoint and a git commit:
 1. Strategy (no code): Design DNA, positioning, three design directions → STOP for a choice
