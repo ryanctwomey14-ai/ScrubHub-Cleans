@@ -14,3 +14,7 @@ Thumbs.db
 npm-debug.log*
 
 .playwright-mcp/
+
+# Testing
+/coverage
+*.pem

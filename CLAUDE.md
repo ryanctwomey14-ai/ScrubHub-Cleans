@@ -1,5 +1,7 @@
 # ScrubHub Cleans — Premium Website
 
+@AGENTS.md
+
 A website for a premium cleaning company that must look and feel like a $10,000+ custom agency build. Nothing generic, templated, or "AI-looking."
 
 ## Business
