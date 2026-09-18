@@ -1,5 +1,5 @@
 import { business } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { Icon } from "@/components/ui/Icon";
 
 /** Closing conversion block used at the bottom of every page. */
@@ -55,7 +55,7 @@ export function FinalCta({
               </a>
             </div>
             <div data-reveal data-reveal-delay="0.08" className="lg:col-span-5 lg:col-start-8">
-              <QuoteForm defaultService={defaultService} />
+              <QuoteAgent defaultService={defaultService} />
             </div>
           </div>
         </div>

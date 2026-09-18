@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { business, cityLabel } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FinalCta } from "@/components/sections/FinalCta";
 import { Icon } from "@/components/ui/Icon";
@@ -25,7 +25,7 @@ export default function ServiceAreasPage() {
         lede={`Homes, rentals, and workplaces across ${cityLabel}. Enter your zip on the form and we'll confirm coverage with your quote.`}
         photoBrief="Pittsburgh skyline or a recognizable local street at golden hour, with a ScrubHub vehicle in frame."
         crumbs={[{ href: "/service-areas", label: "Service Area" }]}
-        form={<QuoteForm />}
+        form={<QuoteAgent />}
       />
 
       <section className="section" aria-labelledby="area-title">

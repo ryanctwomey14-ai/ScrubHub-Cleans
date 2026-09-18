@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { business, cityLabel } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
@@ -25,7 +25,7 @@ export default function ReviewsPage() {
         lede="We earn every review the same way: we listen, tailor the clean, and make it right if anything's missed."
         photoBrief="A happy client at their front door waving goodbye to a ScrubHub cleaner. Candid, warm light."
         crumbs={[{ href: "/reviews", label: "Reviews" }]}
-        form={<QuoteForm />}
+        form={<QuoteAgent />}
       />
       <ReviewsBlock showLink={false} />
       <GuaranteeBand />

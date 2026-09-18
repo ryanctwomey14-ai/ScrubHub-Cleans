@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { business, cityLabel } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { ServicesGrid } from "@/components/sections/ServicesGrid";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
@@ -25,7 +25,7 @@ export default function ServicesPage() {
         lede="Five services, one standard. Choose yours, tell us about your space, and we'll send a quote tailored to it."
         photoBrief="Two ScrubHub cleaners in branded shirts arriving at a client's front door, smiling. Natural light."
         crumbs={[{ href: "/services", label: "Services" }]}
-        form={<QuoteForm />}
+        form={<QuoteAgent />}
       />
       <ServicesGrid heading={false} />
       <GuaranteeBand />

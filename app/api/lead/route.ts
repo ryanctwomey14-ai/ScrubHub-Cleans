@@ -5,7 +5,8 @@ import { clientKey, rateLimit } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const limit = rateLimit(`lead:${clientKey(req)}`, 6, 10 * 60_000);
+  // A single quote-assistant session can send quoted + booked/abandoned events.
+  const limit = rateLimit(`lead:${clientKey(req)}`, 15, 10 * 60_000);
   if (!limit.ok) {
     return NextResponse.json(
       { ok: false, error: "Too many submissions. Please call or text us instead." },

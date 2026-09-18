@@ -1,5 +1,5 @@
 import { cityLabel } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FeatureCards } from "@/components/sections/FeatureCards";
 import { ServicesGrid } from "@/components/sections/ServicesGrid";
@@ -23,7 +23,7 @@ export default function HomePage() {
         }
         lede={`Premium home and commercial cleaning in ${cityLabel}, tailored to how you live and backed by our 24-hour make-it-right promise.`}
         photoBrief="Wide shot of a bright, freshly cleaned living room with a ScrubHub cleaner in a branded shirt adding a final touch. Keep the left third calm for text."
-        form={<QuoteForm />}
+        form={<QuoteAgent />}
       />
       <FeatureCards />
       <ReviewMarquee />

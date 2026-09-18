@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { business, cityLabel, formatPrice, getService } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
 import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
@@ -62,7 +62,7 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
           { href: "/services", label: "Services" },
           { href: `/services/${service.slug}`, label: service.shortName },
         ]}
-        form={<QuoteForm title={`Get Your ${service.shortName} Quote`} defaultService={service.name} />}
+        form={<QuoteAgent defaultService={service.name} />}
       />
 
       <section className="section" aria-labelledby="included-title">

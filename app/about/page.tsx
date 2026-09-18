@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { business, cityLabel } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FeatureCards } from "@/components/sections/FeatureCards";
 import { FinalCta } from "@/components/sections/FinalCta";
@@ -25,7 +25,7 @@ export default function AboutPage() {
         lede="We put our clients first, adapt every clean to the home in front of us, and stand behind every visit."
         photoBrief="Team portrait of the owner and cleaners in branded shirts beside the company vehicle. Confident, relaxed, natural light."
         crumbs={[{ href: "/about", label: "About" }]}
-        form={<QuoteForm />}
+        form={<QuoteAgent />}
       />
 
       <section className="section" aria-labelledby="story-title">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { business, cityLabel } from "@/content/business";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FeatureCards } from "@/components/sections/FeatureCards";
 import { Icon } from "@/components/ui/Icon";
@@ -35,7 +35,7 @@ export default async function ContactPage(props: PageProps<"/contact">) {
         }
         lede="Tell us what you need and where. We'll tailor a quote to your space. Rather talk? We're available 24/7."
         photoBrief="A ScrubHub cleaner at a client's door with a friendly wave, ready to start."
-        form={<QuoteForm extended defaultService={validService} defaultZip={pick(params.zip).replace(/[^\d-]/g, "").slice(0, 10)} />}
+        form={<QuoteAgent defaultService={validService} />}
       >
         <ul className="grid w-full gap-3 sm:grid-cols-3 lg:max-w-xl">
           {channels.map((c) => (
