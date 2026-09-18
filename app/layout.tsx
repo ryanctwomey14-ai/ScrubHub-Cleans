@@ -10,6 +10,7 @@ import { MobileCTA } from "@/components/layout/MobileCTA";
 import { ChatLauncher } from "@/components/chat/ChatLauncher";
 import { QuoteNudge } from "@/components/quote/QuoteNudge";
 import { JsonLd, localBusinessSchema } from "@/lib/schema";
+import { isDraft } from "@/lib/site";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
+  ...(isDraft && { robots: { index: false, follow: false } }),
 };
 
 export const viewport: Viewport = {
