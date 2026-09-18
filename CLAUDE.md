@@ -80,5 +80,8 @@ Phases, each ending in a checkpoint and a git commit:
 
 ## Progress
 - **Phase 1 — Strategy:** ✅ complete. Design DNA and three directions presented; client chose B "Porcelain" (see above).
-- **Phase 2 — Plan:** waiting on the premium-cleaning-site skill contents (it defines the homepage section order) before writing PLAN.md.
-- **Open items:** premium-cleaning-site SKILL.md is empty (contents pending); confirm Pittsburg vs Pittsburgh; theme-factory skill not installed; Context7 MCP loads on next session start; vector logo needed.
+- **Phases 2–6 — Build (2026-09-18):** client asked to build the full site locally for review. ✅ PLAN.md written; Next.js 16 app scaffolded; business.ts, tokens, fonts, Lenis/GSAP, header, footer, mobile CTA; full homepage (9 sections); chatbot (UI, streaming API, lead capture, rate limits); all inner pages; sitemap, robots, OG image, LocalBusiness + FAQ + Service schema. Checked at 375/768/1440 with Playwright; production build passes.
+  - Built without the premium-cleaning-site skill (still empty). Re-audit against it once provided.
+  - City set to "Pittsburgh" in business.ts pending confirmation.
+- **Phase 7 — Polish & QA:** not started. Still to do: Lighthouse run, full keyboard/a11y pass, reduced-motion check in a real browser, real photography.
+- **Open items:** premium-cleaning-site SKILL.md is empty (contents pending); confirm Pittsburg vs Pittsburgh; theme-factory skill not installed; vector logo preferred (transparent PNGs were cut from the raster in public/brand/); real testimonials, photos, prices, knowledge file, API key, and lead webhook from the client.
