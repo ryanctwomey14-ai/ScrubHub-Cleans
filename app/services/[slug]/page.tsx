@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { business, cityLabel, formatPrice, getService } from "@/content/business";
 import { QuoteAgent } from "@/components/quote/QuoteAgent";
+import { QuoteCta } from "@/components/quote/QuoteCta";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
 import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
@@ -102,9 +102,7 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
             </ul>
             <div className="mt-8 flex items-center justify-between gap-4 border-t border-white/10 pt-6">
               <span className="text-[0.875rem] font-bold text-mist">{formatPrice(service.startingPrice)}</span>
-              <Link href="#quote" className="btn btn-primary !h-11">
-                Get my quote <Icon name="arrow" size={15} className="btn-arrow" />
-              </Link>
+              <QuoteCta from="service_page" className="btn btn-primary !h-11" />
             </div>
           </div>
         </div>

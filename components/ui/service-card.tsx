@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * to the ScrubHub design system. Differences from the original:
  *  - brand tokens and fonts instead of shadcn theme variables
  *  - a labeled photo placeholder until a real image is supplied
- *  - no price on the card; a "Get a quote" button is always visible
+ *  - no price on the card; a "Get My Price" button is always visible
  *  - hover (mouse devices only) lifts the card and zooms the photo
  */
 export interface ServiceCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -26,6 +26,8 @@ export interface ServiceCardProps extends React.HTMLAttributes<HTMLDivElement> {
   overview: string;
   bookLabel?: string;
   onBookNow: () => void;
+  /** Short card: title + button only (used where the next step is the quote, not reading). */
+  compact?: boolean;
 }
 
 const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
@@ -40,8 +42,9 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
       href,
       subtitle,
       overview,
-      bookLabel = "Get a quote",
+      bookLabel = "Get My Price",
       onBookNow,
+      compact = false,
       ...props
     },
     ref,
@@ -50,7 +53,8 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
       <div
         ref={ref}
         className={cn(
-          "group relative flex min-h-[27rem] w-full overflow-hidden rounded-2xl bg-night text-white",
+          "group relative flex w-full overflow-hidden rounded-2xl bg-night text-white",
+          compact ? "min-h-[19rem]" : "min-h-[27rem]",
           "shadow-[0_24px_50px_-30px_rgba(8,18,38,0.6)] transition-all duration-300 ease-out",
           "can-hover:hover:-translate-y-2 can-hover:hover:shadow-[0_36px_70px_-30px_rgba(8,18,38,0.75)]",
           className,
@@ -89,7 +93,7 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
         <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night via-night/60 to-transparent" />
 
         {/* Content */}
-        <div className="relative flex w-full flex-col justify-between p-6 md:p-7">
+        <div className={cn("relative flex w-full flex-col justify-between", compact ? "p-5" : "p-6 md:p-7")}>
           {/* Top: icon + photo label */}
           <div className="flex items-start justify-between gap-3">
             {logo && (
@@ -97,7 +101,7 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
                 {logo}
               </div>
             )}
-            {!imageUrl && photoBrief && (
+            {!imageUrl && photoBrief && !compact && (
               <span
                 title={photoBrief}
                 className="rounded-md bg-white/10 px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wide text-white/60 backdrop-blur-sm"
@@ -108,9 +112,9 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
           </div>
 
           {/* Details */}
-          <div className="mt-24 space-y-4">
+          <div className={cn("space-y-4", compact ? "mt-auto pt-10" : "mt-24")}>
             <div>
-              <h3 className="display text-[1.75rem] leading-tight !font-bold">
+              <h3 className={cn("display leading-tight !font-bold", compact ? "text-[1.375rem]" : "text-[1.75rem]")}>
                 {href ? (
                   <Link href={href} className="after:absolute after:inset-0 focus-visible:outline-none">
                     {title}
@@ -119,17 +123,23 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
                   title
                 )}
               </h3>
-              <p className="mt-1 text-[0.875rem] text-white/75">{subtitle}</p>
+              {subtitle && <p className="mt-1 text-[0.875rem] text-white/75">{subtitle}</p>}
             </div>
-            <div>
-              <h4 className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-glint">Overview</h4>
-              <p className="mt-1 text-[0.9375rem] leading-relaxed text-white/80">{overview}</p>
-            </div>
+            {!compact && (
+              <div>
+                <h4 className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-glint">Overview</h4>
+                <p className="mt-1 text-[0.9375rem] leading-relaxed text-white/80">{overview}</p>
+              </div>
+            )}
           </div>
 
           {/* Button: always visible, so every card has one clear next step */}
-          <div className="relative z-10 mt-6">
-            <button type="button" onClick={onBookNow} className="btn w-full bg-white !text-ink hover:bg-white/90">
+          <div className={cn("relative z-10", compact ? "mt-4" : "mt-6")}>
+            <button
+              type="button"
+              onClick={onBookNow}
+              className={cn("btn w-full bg-white !text-ink hover:bg-white/90", compact && "!h-11 !px-4 !text-[0.875rem]")}
+            >
               {bookLabel} <Icon name="arrow" size={16} className="btn-arrow" />
             </button>
           </div>

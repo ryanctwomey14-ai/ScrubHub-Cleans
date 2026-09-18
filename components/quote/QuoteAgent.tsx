@@ -256,7 +256,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event("scrubhub:chat"))}
-                    className="font-bold text-ink hover:underline"
+                    className="chat-only font-bold text-ink hover:underline"
                   >
                     I have a question
                   </button>

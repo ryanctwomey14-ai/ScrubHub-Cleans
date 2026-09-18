@@ -34,7 +34,7 @@ export function MobileCTA() {
           <Icon name="message" size={16} /> Text
         </a>
         <button type="button" onClick={openQuote} className="btn btn-primary !h-12 !px-4 !text-sm">
-          Instant price
+          Get My Price
         </button>
       </div>
     </div>

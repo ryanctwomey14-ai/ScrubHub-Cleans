@@ -91,6 +91,8 @@ export const offer = {
   placeholder: true,
   /** Bonus for booking online. Set to null to hide. */
   bonus: "Free inside-fridge clean on your first visit when you book online" as string | null,
+  /** Short form of the bonus for the hero offer line. */
+  bonusShort: "Free fridge clean when you book online" as string | null,
   /** How long a quoted price is held. Also sets how long the texted resume link works. */
   priceLockDays: 7,
   /** Payment promise shown at the card step. ⚠ Must match the owner's real policy. */

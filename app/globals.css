@@ -314,6 +314,11 @@ html.motion-ok [data-reveal] {
   }
 }
 
+/* Buttons that open the concierge only show when the concierge is enabled */
+html:not([data-chat="on"]) .chat-only {
+  display: none !important;
+}
+
 /* Mobile sticky CTA clearance */
 @media (max-width: 767px) {
   body { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }

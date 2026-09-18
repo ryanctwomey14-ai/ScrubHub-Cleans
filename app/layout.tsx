@@ -66,7 +66,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Footer />
         </MotionProvider>
         <MobileCTA />
-        <ChatLauncher />
+        {/* The concierge only appears once it can actually answer (API key set). */}
+        {process.env.ANTHROPIC_API_KEY && <ChatLauncher />}
         <QuoteNudge />
       </body>
     </html>

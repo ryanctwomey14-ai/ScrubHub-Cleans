@@ -35,7 +35,7 @@ export default function FaqPage() {
             Questions? <em>Answered.</em>
           </>
         }
-        lede="Quick answers to what clients ask most. Still wondering? Ask our concierge or call us any time."
+        lede="Quick answers to what clients ask most. Still wondering? Call or text the team any time, 24/7."
         photoBrief="Close-up of a ScrubHub cleaner talking with a client at a kitchen island, both smiling."
         crumbs={[{ href: "/faq", label: "FAQ" }]}
       />
@@ -48,9 +48,9 @@ export default function FaqPage() {
           <aside data-reveal data-reveal-delay="0.08" className="lg:col-span-4">
             <div className="on-ink rounded-2xl bg-ink p-8 text-white lg:sticky lg:top-28">
               <h2 className="display text-[1.5rem] !font-bold">Still have a question?</h2>
-              <p className="mt-3 text-white/75">Our AI concierge answers in seconds, or talk to the team 24/7.</p>
+              <p className="mt-3 text-white/75">Call or text the team 24/7. A real person answers.</p>
               <div className="mt-6 grid gap-3">
-                <OpenChatButton className="btn btn-primary w-full">Ask the concierge</OpenChatButton>
+                <OpenChatButton className="chat-only btn btn-primary w-full">Ask the concierge</OpenChatButton>
                 <a href={business.contact.phoneHref} className="btn btn-ghost-light w-full">
                   <Icon name="phone" size={16} /> {business.contact.phoneDisplay}
                 </a>

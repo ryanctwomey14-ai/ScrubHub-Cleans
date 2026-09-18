@@ -16,6 +16,8 @@ export function ServiceTile(props: {
   overview: string;
   photoBrief: string;
   image?: string;
+  /** Home: short card with no link off the page. */
+  compact?: boolean;
 }) {
   const router = useRouter();
 
@@ -31,7 +33,8 @@ export function ServiceTile(props: {
       photoBrief={props.photoBrief}
       logo={<Icon name={serviceIcon[props.slug]} size={22} />}
       title={props.name}
-      href={`/services/${props.slug}`}
+      href={props.compact ? undefined : `/services/${props.slug}`}
+      compact={props.compact}
       subtitle={props.subtitle}
       overview={props.overview}
       onBookNow={book}

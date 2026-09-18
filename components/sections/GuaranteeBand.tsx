@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { business } from "@/content/business";
-import { Icon } from "@/components/ui/Icon";
+import { QuoteCta } from "@/components/quote/QuoteCta";
 
 /** The risk-reversal: the single strongest reason to book. */
 export function GuaranteeBand() {
@@ -30,9 +29,7 @@ export function GuaranteeBand() {
               </h2>
               <p className="mt-3 max-w-2xl text-white/75">{business.guarantee.body}</p>
             </div>
-            <Link href="/contact" className="btn btn-primary">
-              Book with confidence <Icon name="arrow" size={16} className="btn-arrow" />
-            </Link>
+            <QuoteCta from="guarantee" />
           </div>
         </div>
       </div>

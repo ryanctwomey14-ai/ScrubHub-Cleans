@@ -15,6 +15,14 @@ export function ChatLauncher() {
   const [visible, setVisible] = useState(false);
   const launcherRef = useRef<HTMLButtonElement>(null);
 
+  // Lets ".chat-only" buttons elsewhere ("I have a question") appear only when chat exists.
+  useEffect(() => {
+    document.documentElement.dataset.chat = "on";
+    return () => {
+      delete document.documentElement.dataset.chat;
+    };
+  }, []);
+
   // Arrive quietly after the hero has had its moment.
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 1600);

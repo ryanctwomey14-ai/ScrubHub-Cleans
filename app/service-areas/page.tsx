@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { business, cityLabel } from "@/content/business";
 import { QuoteAgent } from "@/components/quote/QuoteAgent";
+import { QuoteCta } from "@/components/quote/QuoteCta";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FinalCta } from "@/components/sections/FinalCta";
 import { Icon } from "@/components/ui/Icon";
@@ -57,9 +57,7 @@ export default function ServiceAreasPage() {
               <a href={business.contact.smsHref} className="btn btn-primary">
                 <Icon name="message" size={16} /> Text your zip
               </a>
-              <Link href="#quote" className="btn btn-ghost-light">
-                Get a quote
-              </Link>
+              <QuoteCta from="service_areas" className="btn btn-ghost-light" />
             </div>
           </div>
         </div>

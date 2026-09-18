@@ -329,6 +329,65 @@ export const business = {
     },
   ] satisfies Review[],
 
+  /**
+   * "Questions before you book?" on the homepage: the objections that stop a
+   * booking, answered right before the final call to action. Only entries with
+   * `confirmed: true` are shown. The unconfirmed ones are DRAFTS: confirm the
+   * facts with the owner, edit the answer, then flip `confirmed` to true.
+   */
+  objections: [
+    {
+      question: "How much will it cost?",
+      answer:
+        "You'll see your exact, itemized price in about 60 seconds, right here on this page. No waiting for a callback, no pressure.",
+      confirmed: true,
+    },
+    {
+      question: "When can you come?",
+      answer:
+        "Right after your price, you'll see the next open time and can grab it in one tap. Need something sooner? Call or text 412-866-2510, any time, 24/7.",
+      confirmed: true,
+    },
+    {
+      question: "What if I'm not happy with the clean?",
+      answer:
+        "Tell us. If we missed something, we come back within 24 hours and make it right. It's the promise our business is built on.",
+      confirmed: true,
+    },
+    {
+      question: "Do I pay upfront?",
+      answer:
+        "No. You add a card to lock in your cleaner, and you're only charged after the job is done and you're happy with it.",
+      confirmed: true,
+    },
+    {
+      question: "Will you clean it the way I like it?",
+      answer:
+        "Yes. There's no such thing as one-size-fits-all. Tell us your priorities and we build every clean around them.",
+      confirmed: true,
+    },
+    {
+      question: "Are your cleaners insured and background-checked?",
+      answer: "DRAFT: Yes. Every cleaner is background-checked, and we're fully insured and bonded.",
+      confirmed: false,
+    },
+    {
+      question: "Do I need to be home?",
+      answer: "DRAFT: No. Many clients give us a key or door code. We'll confirm access details when we confirm your booking.",
+      confirmed: false,
+    },
+    {
+      question: "Is it okay if I have pets?",
+      answer: "DRAFT: Absolutely. Just let us know about them when you book so we can plan around them.",
+      confirmed: false,
+    },
+    {
+      question: "Do you bring your own supplies?",
+      answer: "DRAFT: Yes. We bring all supplies and equipment. Prefer we use yours? Just ask.",
+      confirmed: false,
+    },
+  ] satisfies { question: string; answer: string; confirmed: boolean }[],
+
   faqs: [
     {
       question: "How do I get a quote?",

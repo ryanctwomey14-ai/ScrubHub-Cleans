@@ -6,7 +6,8 @@ import { ReviewMarquee } from "@/components/sections/ReviewMarquee";
 import { ReviewsBanner } from "@/components/sections/ReviewsBanner";
 import { Steps } from "@/components/sections/Steps";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
-import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
+import { Objections } from "@/components/sections/Objections";
+import { HeroOffer } from "@/components/sections/HeroOffer";
 import { FinalCta } from "@/components/sections/FinalCta";
 
 export default function HomePage() {
@@ -21,7 +22,7 @@ export default function HomePage() {
             <em className="lg:whitespace-nowrap">Every One Guaranteed.</em>
           </>
         }
-        lede={`The cleaning company your ${business.location.city} neighbors trust with their homes, their families, and their keys. Tailored to how you live, and if we ever miss a spot, we're back within 24 hours to make it right.`}
+        lede={`The cleaning company your ${business.location.city} neighbors trust with their homes and their keys. See your exact price in 60 seconds and grab the next open spot.`}
         photoBrief="Wide shot of a bright, freshly cleaned living room with a ScrubHub cleaner in a branded shirt adding a final touch. Keep the left third calm for text."
         image={{
           src: "/photos/hero-before-after.jpg",
@@ -29,12 +30,14 @@ export default function HomePage() {
         }}
         banner={<ReviewsBanner />}
         form={<QuoteAgent />}
-      />
+      >
+        <HeroOffer />
+      </DarkHero>
       <ReviewMarquee overlapHero showHeader={false} />
-      <ServicesGrid />
+      <ServicesGrid compact />
       <Steps />
       <GuaranteeBand />
-      <ReviewsBlock />
+      <Objections />
       <FinalCta />
     </>
   );

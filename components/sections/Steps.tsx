@@ -1,14 +1,14 @@
 import Image from "next/image";
-import Link from "next/link";
 import { business } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
+import { QuoteCta } from "@/components/quote/QuoteCta";
 
 const steps = [
-  { title: "Get your quote", body: "Call, text, or send the form. It takes under a minute." },
-  { title: "We tailor the clean", body: "Your plan is built around your home, priorities, and schedule." },
+  { title: "See your price", body: "A few quick taps and your exact, itemized price is ready in about 60 seconds." },
+  { title: "Grab your time", body: "The next open time shows up instantly. One tap and it's yours. $0 today." },
   {
     title: "Enjoy a spotless home",
-    body: `And if anything's missed, we're back within ${business.guarantee.hours} hours to make it right.`,
+    body: `Pay after you're happy. If anything's missed, we're back within ${business.guarantee.hours} hours to make it right.`,
   },
 ];
 
@@ -78,9 +78,7 @@ export function Steps() {
         </ol>
 
         <div data-reveal className="mt-10 flex flex-wrap justify-center gap-3">
-          <Link href="/contact" className="btn btn-primary">
-            Start with a quote <Icon name="arrow" size={16} className="btn-arrow" />
-          </Link>
+          <QuoteCta from="steps" />
           <a href={business.contact.phoneHref} className="btn btn-ghost-light">
             <Icon name="phone" size={16} /> {business.contact.phoneDisplay}
           </a>

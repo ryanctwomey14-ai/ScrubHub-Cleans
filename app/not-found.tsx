@@ -19,7 +19,7 @@ export default function NotFound() {
         Back to home <Icon name="arrow" size={16} className="btn-arrow" />
       </Link>
       <Link href="/contact" className="btn btn-ghost-light">
-        Get a quote
+        Get My Price
       </Link>
       <a href={business.contact.phoneHref} className="font-bold hover:text-glint">
         {business.contact.phoneDisplay}

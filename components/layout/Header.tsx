@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { business } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
 import { lockScroll } from "@/lib/motion";
+import { QuoteCta } from "@/components/quote/QuoteCta";
 import { primaryNav } from "./nav";
 
 export function Header() {
@@ -93,9 +94,7 @@ export function Header() {
               <Icon name="phone" size={17} />
               {business.contact.phoneDisplay}
             </a>
-            <Link href="/contact" className="btn btn-primary !hidden !h-11 !px-5 !text-[0.875rem] md:!inline-flex">
-              Get a Quote <Icon name="arrow" size={15} className="btn-arrow" />
-            </Link>
+            <QuoteCta from="header" className="btn btn-primary !hidden !h-11 !px-5 !text-[0.875rem] md:!inline-flex" />
             <button
               ref={menuButton}
               type="button"
@@ -134,9 +133,7 @@ export function Header() {
           </ul>
         </nav>
         <div className="grid gap-3">
-          <Link href="/contact" onClick={close} className="btn btn-primary w-full">
-            Get a Quote <Icon name="arrow" size={16} />
-          </Link>
+          <QuoteCta from="mobile_menu" onClick={close} className="btn btn-primary w-full" />
           <a href={business.contact.phoneHref} className="btn btn-ghost-light w-full">
             <Icon name="phone" size={17} /> Call {business.contact.phoneDisplay}
           </a>
