@@ -88,6 +88,26 @@ export const business = {
     country: "US",
   },
   serviceAreas: ["Pittsburgh, PA"],
+  /**
+   * SAMPLE LIST: common Pittsburgh-area neighborhoods, used on the homepage and
+   * the Service Area page. Replace with the owner's real coverage, then set
+   * `neighborhoodsConfirmed: true` to remove the "Sample list" tag.
+   */
+  neighborhoods: [
+    "Shadyside",
+    "Squirrel Hill",
+    "Lawrenceville",
+    "Mt. Lebanon",
+    "Upper St. Clair",
+    "Bethel Park",
+    "Fox Chapel",
+    "Sewickley",
+    "Wexford",
+    "Cranberry Twp",
+    "Moon Twp",
+    "Monroeville",
+  ],
+  neighborhoodsConfirmed: false,
 
   rating: {
     value: 4.8,

@@ -8,13 +8,14 @@ import { business } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
 import { lockScroll } from "@/lib/motion";
 import { QuoteCta } from "@/components/quote/QuoteCta";
-import { primaryNav } from "./nav";
+import { landingPaths, primaryNav } from "./nav";
 
 export function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const landing = landingPaths.includes(pathname);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -37,7 +38,9 @@ export function Header() {
   }, [open]);
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+    href === "/"
+      ? pathname === "/"
+      : pathname === href || pathname.startsWith(`${href}/`);
   const close = () => setOpen(false);
 
   return (
@@ -51,7 +54,9 @@ export function Header() {
 
       <header
         className={`on-ink fixed inset-x-0 top-0 z-50 text-white transition-[background-color,box-shadow] duration-300 ${
-          scrolled || open ? "bg-night/92 shadow-[0_10px_30px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl" : "bg-transparent"
+          scrolled || open
+            ? "bg-night/92 shadow-[0_10px_30px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+            : "bg-transparent"
         }`}
       >
         <div
@@ -59,42 +64,65 @@ export function Header() {
             scrolled ? "h-[4.5rem]" : "h-20 md:h-24"
           }`}
         >
-          <Link href="/" onClick={close} aria-label={`${business.name}: home`} className="shrink-0">
+          {landing ? (
             <Image
               src="/brand/logo-on-dark.png"
               alt={business.name}
               width={929}
               height={338}
               priority
-              className="h-10 w-auto md:h-11"
+              className="h-10 w-auto shrink-0 md:h-11"
             />
-          </Link>
+          ) : (
+            <Link
+              href="/"
+              onClick={close}
+              aria-label={`${business.name}: home`}
+              className="shrink-0"
+            >
+              <Image
+                src="/brand/logo-on-dark.png"
+                alt={business.name}
+                width={929}
+                height={338}
+                priority
+                className="h-10 w-auto md:h-11"
+              />
+            </Link>
+          )}
 
-          <nav aria-label="Primary" className="hidden lg:block">
-            <ul className="flex items-center gap-1 rounded-full bg-white/[0.07] p-1.5 ring-1 ring-white/12 backdrop-blur">
-              {[{ href: "/", label: "Home" }, ...primaryNav].map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                    className="block rounded-full px-4 py-2 text-[0.875rem] font-semibold text-white/80 transition-colors hover:text-white aria-[current=page]:bg-white aria-[current=page]:text-ink"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {!landing && (
+            <nav aria-label="Primary" className="hidden md:block">
+              <ul className="flex items-center gap-1 rounded-full bg-white/[0.07] p-1.5 ring-1 ring-white/12 backdrop-blur">
+                {primaryNav.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      className="block rounded-full px-4 py-2 text-[0.875rem] font-semibold text-white/80 transition-colors hover:text-white aria-[current=page]:bg-white aria-[current=page]:text-ink"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
 
           <div className="flex items-center gap-3">
             <a
               href={business.contact.phoneHref}
-              className="hidden items-center gap-2 text-[0.9375rem] font-bold text-white hover:text-glint xl:inline-flex"
+              className={`items-center gap-2 text-[0.9375rem] font-bold text-white hover:text-glint ${
+                landing ? "hidden sm:inline-flex" : "hidden lg:inline-flex"
+              }`}
             >
               <Icon name="phone" size={17} />
               {business.contact.phoneDisplay}
             </a>
-            <QuoteCta from="header" className="btn btn-primary !hidden !h-11 !px-5 !text-[0.875rem] md:!inline-flex" />
+            <QuoteCta
+              from="header"
+              className="btn btn-primary !hidden !h-11 !px-5 !text-[0.875rem] md:!inline-flex"
+            />
             <button
               ref={menuButton}
               type="button"
@@ -102,7 +130,9 @@ export function Header() {
               aria-expanded={open}
               aria-controls="mobile-menu"
               aria-label={open ? "Close menu" : "Open menu"}
-              className="grid h-11 w-11 place-items-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 lg:hidden"
+              className={`h-11 w-11 place-items-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 ${
+                landing ? "hidden" : "grid md:hidden"
+              }`}
             >
               <Icon name={open ? "close" : "menu"} size={20} />
             </button>
@@ -110,35 +140,45 @@ export function Header() {
         </div>
       </header>
 
-      <div
-        id="mobile-menu"
-        hidden={!open}
-        className="on-ink fixed inset-0 z-40 flex flex-col bg-night px-5 pb-8 pt-28 text-white md:px-8 lg:hidden"
-      >
-        <nav aria-label="Mobile" className="flex-1">
-          <ul className="divide-y divide-white/10">
-            {[{ href: "/", label: "Home" }, ...primaryNav, { href: "/contact", label: "Contact" }].map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={close}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  className="display flex items-center justify-between py-4 text-[1.625rem] !font-bold aria-[current=page]:text-glint"
-                >
-                  {item.label}
-                  <Icon name="arrow" size={18} className="opacity-50" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="grid gap-3">
-          <QuoteCta from="mobile_menu" onClick={close} className="btn btn-primary w-full" />
-          <a href={business.contact.phoneHref} className="btn btn-ghost-light w-full">
-            <Icon name="phone" size={17} /> Call {business.contact.phoneDisplay}
-          </a>
+      {!landing && (
+        <div
+          id="mobile-menu"
+          hidden={!open}
+          className="on-ink fixed inset-0 z-40 flex flex-col bg-night px-5 pb-8 pt-28 text-white md:hidden"
+        >
+          <nav aria-label="Mobile" className="flex-1">
+            <ul className="divide-y divide-white/10">
+              {[{ href: "/", label: "Home" }, ...primaryNav].map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={close}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    className="display flex items-center justify-between py-4 text-[1.625rem] !font-bold aria-[current=page]:text-glint"
+                  >
+                    {item.label}
+                    <Icon name="arrow" size={18} className="opacity-50" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="grid gap-3">
+            <QuoteCta
+              from="mobile_menu"
+              onClick={close}
+              className="btn btn-primary w-full"
+            />
+            <a
+              href={business.contact.phoneHref}
+              className="btn btn-ghost-light w-full"
+            >
+              <Icon name="phone" size={17} /> Call{" "}
+              {business.contact.phoneDisplay}
+            </a>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

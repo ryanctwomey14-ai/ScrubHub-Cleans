@@ -43,6 +43,14 @@ export default function ServiceAreasPage() {
                 </li>
               ))}
             </ul>
+            <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-sand pt-6 sm:grid-cols-3">
+              {business.neighborhoods.map((n) => (
+                <li key={n} className="flex items-center gap-2 text-[0.9375rem] font-semibold">
+                  <Icon name="pin" size={15} className="shrink-0 text-hub" />
+                  {n}
+                </li>
+              ))}
+            </ul>
             <p className="mt-6 text-stone">
               Services available: {business.services.map((s) => s.shortName).join(", ")}.
             </p>

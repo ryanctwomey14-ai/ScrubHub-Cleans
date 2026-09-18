@@ -1,16 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { business, cityLabel } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
 import { QuoteCta } from "@/components/quote/QuoteCta";
-
-// Deliberately short: one action, how to reach a human, and a few quiet links.
-const links = [
-  { href: "/services", label: "Services" },
-  { href: "/reviews", label: "Reviews" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/about", label: "About" },
-];
+import { FooterLinks } from "./FooterLinks";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -62,13 +54,7 @@ export function Footer() {
           <p>
             © {year} {business.legalName}. All rights reserved.
           </p>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-            {links.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-porcelain">
-                {l.label}
-              </Link>
-            ))}
-          </nav>
+          <FooterLinks />
         </div>
       </div>
     </footer>
