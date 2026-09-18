@@ -3,6 +3,7 @@ import { QuoteForm } from "@/components/forms/QuoteForm";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FeatureCards } from "@/components/sections/FeatureCards";
 import { ServicesGrid } from "@/components/sections/ServicesGrid";
+import { ReviewMarquee } from "@/components/sections/ReviewMarquee";
 import { Steps } from "@/components/sections/Steps";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
 import { ReviewsBlock } from "@/components/sections/ReviewsBlock";
@@ -25,6 +26,7 @@ export default function HomePage() {
         form={<QuoteForm />}
       />
       <FeatureCards />
+      <ReviewMarquee />
       <ServicesGrid />
       <Steps />
       <GuaranteeBand />

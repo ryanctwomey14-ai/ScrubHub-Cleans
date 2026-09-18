@@ -288,6 +288,24 @@ export const business = {
     },
   ] satisfies Testimonial[],
 
+  /**
+   * PLACEHOLDER Google reviews for the homepage review loop.
+   * Replace with real reviews copied from the Google Business Profile
+   * (first name + last initial, as shown on Google). Set `googleReviewsUrl`
+   * to the profile's reviews link to make the strip clickable.
+   */
+  googleReviewsUrl: null as string | null,
+  googleReviews: [
+    { name: "Sample Reviewer", when: "2 weeks ago", text: "They listened to exactly what we wanted and the house has never looked better. Booking was easy.", placeholder: true },
+    { name: "Sample Reviewer", when: "1 month ago", text: "Missed one spot on the baseboards and they were back the next day to fix it. That's service.", placeholder: true },
+    { name: "Sample Reviewer", when: "1 month ago", text: "Our Airbnb turnovers are finally stress-free. Guests keep mentioning how clean it is.", placeholder: true },
+    { name: "Sample Reviewer", when: "2 months ago", text: "Deep clean before we moved in was incredible. Every cabinet, every corner.", placeholder: true },
+    { name: "Sample Reviewer", when: "2 months ago", text: "Flexible with our schedule and always on time. We've used them for over a year now.", placeholder: true },
+    { name: "Sample Reviewer", when: "3 months ago", text: "Getting a quote by text was so easy. Great team, great results.", placeholder: true },
+    { name: "Sample Reviewer", when: "3 months ago", text: "Our office has never been this clean. Reliable crew and easy to work with.", placeholder: true },
+    { name: "Sample Reviewer", when: "4 months ago", text: "Our move-out clean made the final walkthrough a breeze. Worth every penny.", placeholder: true },
+  ] satisfies { name: string; when: string; text: string; placeholder: boolean }[],
+
   faqs: [
     {
       question: "How do I get a quote?",
