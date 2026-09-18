@@ -1,0 +1,4 @@
+# Netlify detects Next.js and runs it with its Next.js runtime (API routes included).
+[build]
+  command = "npm run build"
+  publish = ".next"

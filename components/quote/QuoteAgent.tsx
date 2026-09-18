@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { business } from "@/content/business";
 import { booking, offer, pricing, smsConsent } from "@/content/pricing";
 import { Icon, Stars } from "@/components/ui/Icon";
@@ -452,6 +452,17 @@ function ReviewCard() {
 
 /* ─── Inputs ────────────────────────────────────────────────── */
 
+/**
+ * Every assistant on a page shares one conversation, so a new step renders in
+ * all of them. Only focus the copy that's on screen, without scrolling, so the
+ * page never jumps to the other assistant.
+ */
+function focusIfVisible(el: HTMLInputElement | null) {
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  if (r.top >= 0 && r.bottom <= window.innerHeight) el.focus({ preventScroll: true });
+}
+
 function Chips({ children, cols }: { children: React.ReactNode; cols?: number }) {
   const grid = cols ? { 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 6: "grid-cols-[1.6fr_repeat(5,minmax(0,1fr))]" }[cols] : "";
   return <div className={cols ? `grid gap-2 ${grid}` : "flex flex-wrap gap-2"}>{children}</div>;
@@ -573,6 +584,7 @@ function ContactInput({
   onSubmit: (f: { name: string; phone: string; email: string }) => void;
   sending: boolean;
 }) {
+  const uid = useId();
   const [f, setF] = useState({ name: "", phone: "", email: "" });
   const bind = (k: keyof typeof f) => ({
     value: f[k],
@@ -587,13 +599,13 @@ function ContactInput({
       }}
     >
       <div className="grid grid-cols-2 gap-2">
-        <label htmlFor="agent-name" className="sr-only">First name</label>
-        <input id="agent-name" autoComplete="given-name" placeholder="First name" className="field !h-12" {...bind("name")} />
-        <label htmlFor="agent-phone" className="sr-only">Mobile number</label>
-        <input id="agent-phone" type="tel" autoComplete="tel" placeholder="Mobile number" className="field !h-12" {...bind("phone")} />
+        <label htmlFor={`${uid}-name`} className="sr-only">First name</label>
+        <input id={`${uid}-name`} autoComplete="given-name" placeholder="First name" className="field !h-12" {...bind("name")} />
+        <label htmlFor={`${uid}-phone`} className="sr-only">Mobile number</label>
+        <input id={`${uid}-phone`} type="tel" autoComplete="tel" placeholder="Mobile number" className="field !h-12" {...bind("phone")} />
       </div>
-      <label htmlFor="agent-email" className="sr-only">Email</label>
-      <input id="agent-email" type="email" autoComplete="email" placeholder="Email" className="field !h-12" {...bind("email")} />
+      <label htmlFor={`${uid}-email`} className="sr-only">Email</label>
+      <input id={`${uid}-email`} type="email" autoComplete="email" placeholder="Email" className="field !h-12" {...bind("email")} />
       <button type="submit" disabled={sending} className="btn btn-primary !h-12 w-full">
         {sending ? "Saving…" : "Build my quote"} <Icon name="arrow" size={16} className="btn-arrow" />
       </button>
@@ -603,6 +615,7 @@ function ContactInput({
 }
 
 function ZipInput({ onSubmit, sending }: { onSubmit: (zip: string) => void; sending: boolean }) {
+  const uid = useId();
   const [zip, setZip] = useState("");
   return (
     <form
@@ -612,10 +625,10 @@ function ZipInput({ onSubmit, sending }: { onSubmit: (zip: string) => void; send
         onSubmit(zip.trim());
       }}
     >
-      <label htmlFor="agent-zip" className="sr-only">Zip code</label>
+      <label htmlFor={`${uid}-zip`} className="sr-only">Zip code</label>
       <input
-        id="agent-zip"
-        autoFocus
+        id={`${uid}-zip`}
+        ref={focusIfVisible}
         inputMode="numeric"
         autoComplete="postal-code"
         maxLength={5}
@@ -641,6 +654,7 @@ function AddressInput({
   onSubmit: (f: { address: string; unit: string; notes: string }) => void;
   sending: boolean;
 }) {
+  const uid = useId();
   const [address, setAddress] = useState("");
   const [unit, setUnit] = useState("");
   const [notes, setNotes] = useState("");
@@ -653,19 +667,19 @@ function AddressInput({
       }}
     >
       <div className="grid grid-cols-[1fr_5.5rem] gap-2">
-        <label htmlFor="agent-address" className="sr-only">Street address</label>
+        <label htmlFor={`${uid}-address`} className="sr-only">Street address</label>
         <input
-          id="agent-address"
-          autoFocus
+          id={`${uid}-address`}
+          ref={focusIfVisible}
           autoComplete="address-line1"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="Street address"
           className="field !h-12"
         />
-        <label htmlFor="agent-unit" className="sr-only">Apartment or unit (optional)</label>
+        <label htmlFor={`${uid}-unit`} className="sr-only">Apartment or unit (optional)</label>
         <input
-          id="agent-unit"
+          id={`${uid}-unit`}
           autoComplete="address-line2"
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
@@ -673,9 +687,9 @@ function AddressInput({
           className="field !h-12 !px-3"
         />
       </div>
-      <label htmlFor="agent-notes" className="sr-only">Access notes (optional)</label>
+      <label htmlFor={`${uid}-notes`} className="sr-only">Access notes (optional)</label>
       <input
-        id="agent-notes"
+        id={`${uid}-notes`}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Gate code, parking, pets? (optional)"
