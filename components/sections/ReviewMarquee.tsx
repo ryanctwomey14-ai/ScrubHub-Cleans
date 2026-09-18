@@ -39,12 +39,13 @@ function ReviewCard({ review }: { review: Review }) {
  * slides by exactly half its width, so the seam is invisible. Pauses on hover
  * and keyboard focus; with reduced motion it becomes a swipeable row instead.
  */
-export function ReviewMarquee() {
+/** `overlapHero`: the strip rides up onto the hero's dark bottom edge so proof shows at the fold. */
+export function ReviewMarquee({ overlapHero = false }: { overlapHero?: boolean }) {
   const reviews = business.reviews;
   const Wrapper = business.reviewsUrl ? "a" : "div";
 
   return (
-    <section aria-labelledby="google-reviews-title" className="pt-14 md:pt-16">
+    <section aria-labelledby="google-reviews-title" className={overlapHero ? "on-ink relative z-10 -mt-28" : "pt-14 md:pt-16"}>
       <div className="shell flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Wrapper
           {...(business.reviewsUrl
@@ -54,20 +55,22 @@ export function ReviewMarquee() {
         >
           <GoogleG size={28} />
           <span>
-            <span id="google-reviews-title" className="block text-[0.9375rem] font-bold">
+            <span id="google-reviews-title" className={`block text-[0.9375rem] font-bold ${overlapHero ? "text-white" : ""}`}>
               {business.reviewsSource} Reviews
             </span>
-            <span className="flex items-center gap-2 text-[0.875rem] text-stone">
-              <strong className="text-ink">{business.rating.value}</strong>
+            <span className={`flex items-center gap-2 text-[0.875rem] ${overlapHero ? "text-white/70" : "text-stone"}`}>
+              <strong className={overlapHero ? "text-white" : "text-ink"}>{business.rating.value}</strong>
               <Stars className="text-[#FBBC04]" size={13} />
               {business.rating.count} reviews
             </span>
           </span>
         </Wrapper>
-        <p className="text-[0.875rem] text-stone">What clients across {business.location.city} are saying.</p>
+        <p className={`text-[0.875rem] ${overlapHero ? "text-white/70" : "text-stone"}`}>
+          What clients across {business.location.city} are saying.
+        </p>
       </div>
 
-      <div className="marquee group relative mt-8 overflow-hidden">
+      <div className={`marquee group relative overflow-hidden ${overlapHero ? "mt-5" : "mt-8"}`}>
         <ul className="marquee-track flex w-max gap-4">
           {reviews.map((r, i) => (
             <li key={`a-${i}`}>

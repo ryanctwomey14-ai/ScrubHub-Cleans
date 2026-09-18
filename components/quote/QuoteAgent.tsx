@@ -134,7 +134,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
         data-lenis-prevent
         aria-live="polite"
         className={`relative space-y-2.5 overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-width:thin] transition-[height] duration-500 md:px-6 ${
-          tall ? "h-[24rem] md:h-[25rem]" : "h-[16rem] md:h-[17rem]"
+          tall ? "h-[24rem] md:h-[25rem]" : "h-[15rem]"
         }`}
       >
         {s.messages.map((m) => (

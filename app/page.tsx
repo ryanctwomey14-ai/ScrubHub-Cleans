@@ -1,7 +1,6 @@
 import { business } from "@/content/business";
 import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
-import { FeatureCards } from "@/components/sections/FeatureCards";
 import { ServicesGrid } from "@/components/sections/ServicesGrid";
 import { ReviewMarquee } from "@/components/sections/ReviewMarquee";
 import { Steps } from "@/components/sections/Steps";
@@ -30,8 +29,7 @@ export default function HomePage() {
         }}
         form={<QuoteAgent />}
       />
-      <FeatureCards />
-      <ReviewMarquee />
+      <ReviewMarquee overlapHero />
       <ServicesGrid />
       <Steps />
       <GuaranteeBand />

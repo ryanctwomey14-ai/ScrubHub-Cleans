@@ -48,7 +48,7 @@ export function DarkHero({
           {/* Legibility: darker behind the headline (left), lighter so the clean side reads bright (right) */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-gradient-to-r from-night/85 via-night/45 to-night/10 max-lg:bg-night/65"
+            className="absolute inset-0 -z-10 bg-gradient-to-r from-night/95 from-15% via-night/80 via-50% to-night/20 max-lg:bg-night/80"
           />
           <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-36 bg-gradient-to-b from-night/75 to-transparent" />
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-night/80 to-transparent" />
@@ -78,7 +78,7 @@ export function DarkHero({
 
       <div
         className={`shell relative grid gap-y-8 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-6 ${
-          home ? "pb-36 pt-32 md:pt-40 lg:pb-44 lg:pt-44" : "pb-16 pt-32 md:pb-20 md:pt-40"
+          home ? "pb-32 pt-28 md:pt-36 lg:pb-32 lg:pt-36" : "pb-16 pt-32 md:pb-20 md:pt-40"
         }`}
       >
         {/* Mobile order: headline → quote assistant → supporting copy, so the
@@ -162,7 +162,7 @@ export function DarkHero({
       </div>
 
       {!image && (
-        <p className={`absolute right-4 hidden max-w-xs ${home ? "bottom-28" : "bottom-3"} text-right text-[0.6875rem] leading-snug text-white/35 lg:block`}>
+        <p className={`absolute right-4 hidden max-w-xs bottom-3 text-right text-[0.6875rem] leading-snug text-white/35 lg:block`}>
           Photo to shoot: {photoBrief}
         </p>
       )}
