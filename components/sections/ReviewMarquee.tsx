@@ -1,4 +1,4 @@
-import { business } from "@/content/business";
+import { business, type Review } from "@/content/business";
 import { Stars } from "@/components/ui/Icon";
 
 function GoogleG({ size = 18 }: { size?: number }) {
@@ -12,24 +12,22 @@ function GoogleG({ size = 18 }: { size?: number }) {
   );
 }
 
-function ReviewCard({ review }: { review: (typeof business.googleReviews)[number] }) {
+function ReviewCard({ review }: { review: Review }) {
   return (
     <figure className="flex h-full w-[19rem] shrink-0 flex-col rounded-2xl border border-sand bg-white p-5 md:w-[22rem] md:p-6">
       <div className="flex items-center justify-between gap-3">
         <Stars className="text-[#FBBC04]" size={15} />
         <GoogleG size={18} />
       </div>
-      <blockquote className="mt-3 flex-1 text-[0.9375rem] leading-relaxed text-ink">&ldquo;{review.text}&rdquo;</blockquote>
+      <p className="mt-3 text-[0.9375rem] font-bold leading-snug text-ink">&ldquo;{review.title}&rdquo;</p>
+      <blockquote className="mt-2 line-clamp-4 flex-1 text-[0.875rem] leading-relaxed text-stone">{review.text}</blockquote>
       <figcaption className="mt-4 flex items-center gap-3 text-[0.8125rem]">
         <span className="grid h-8 w-8 place-items-center rounded-full bg-linen font-bold text-hub" aria-hidden="true">
           {review.name.charAt(0)}
         </span>
         <span>
           <span className="block font-bold">{review.name}</span>
-          <span className="text-stone">
-            {review.when}
-            {review.placeholder && " · Sample"}
-          </span>
+          <span className="text-stone">{business.reviewsSource} review</span>
         </span>
       </figcaption>
     </figure>
@@ -42,22 +40,22 @@ function ReviewCard({ review }: { review: (typeof business.googleReviews)[number
  * and keyboard focus; with reduced motion it becomes a swipeable row instead.
  */
 export function ReviewMarquee() {
-  const reviews = business.googleReviews;
-  const Wrapper = business.googleReviewsUrl ? "a" : "div";
+  const reviews = business.reviews;
+  const Wrapper = business.reviewsUrl ? "a" : "div";
 
   return (
     <section aria-labelledby="google-reviews-title" className="pt-14 md:pt-16">
       <div className="shell flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Wrapper
-          {...(business.googleReviewsUrl
-            ? { href: business.googleReviewsUrl, target: "_blank", rel: "noopener noreferrer" }
+          {...(business.reviewsUrl
+            ? { href: business.reviewsUrl, target: "_blank", rel: "noopener noreferrer" }
             : {})}
           className="flex items-center gap-3"
         >
           <GoogleG size={28} />
           <span>
             <span id="google-reviews-title" className="block text-[0.9375rem] font-bold">
-              Google Reviews
+              {business.reviewsSource} Reviews
             </span>
             <span className="flex items-center gap-2 text-[0.875rem] text-stone">
               <strong className="text-ink">{business.rating.value}</strong>

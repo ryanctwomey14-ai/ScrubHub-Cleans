@@ -1,4 +1,4 @@
-import { cityLabel } from "@/content/business";
+import { business } from "@/content/business";
 import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { FeatureCards } from "@/components/sections/FeatureCards";
@@ -14,14 +14,15 @@ export default function HomePage() {
     <>
       <DarkHero
         size="home"
-        eyebrow={`Top-rated in ${cityLabel}`}
+        eyebrow={`Trusted by your ${business.location.city} neighbors`}
         title={
           <>
-            Spotless Cleaning, <br className="hidden sm:block" />
-            <em className="whitespace-nowrap">Done Right.</em> Always.
+            {business.stats.homesCleanedPhrase} {business.location.city} <br className="hidden sm:block" />
+            Homes Cleaned. <br className="hidden sm:block" />
+            <em className="lg:whitespace-nowrap">Every One Guaranteed.</em>
           </>
         }
-        lede={`Premium home and commercial cleaning in ${cityLabel}, tailored to how you live and backed by our 24-hour make-it-right promise.`}
+        lede={`The cleaning company your ${business.location.city} neighbors trust with their homes, their families, and their keys. Tailored to how you live, and if we ever miss a spot, we're back within 24 hours to make it right.`}
         photoBrief="Wide shot of a bright, freshly cleaned living room with a ScrubHub cleaner in a branded shirt adding a final touch. Keep the left third calm for text."
         form={<QuoteAgent />}
       />

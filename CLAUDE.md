@@ -15,11 +15,11 @@ All business details live in ONE file: `/content/business.ts`. Every page and th
   - There's no such thing as "one size fits all." We adapt to your needs and what you're looking for.
   - If we missed something, we come back within 24 hours to fix it.
   - Top Rated. Flexible. We Will Make It Right... ALWAYS.
-- Stats: 4.8 stars, 160 reviews
+- Stats: 4.8 stars, 160 reviews; over 1,000 Pittsburgh homes cleaned (client-supplied, 2026-09-18)
 - Phone: 412-866-2510 | Email: support@scrubhubcleansllc.com | Hours: 24/7
 - Booking: call, text, or fill out the form for an instant quote
 - Brand vibe: high-end and trustworthy
-- Testimonials: placeholders for now
+- Reviews: 7 real client reviews (verbatim) in `business.reviews`, labeled as Google reviews (⚠ client to confirm source)
 - Logo: `ScrubHub Cleaners LLC_Logo.png` (raster on navy; hex S-mark with cyan→blue gradient). Need a vector/transparent version from the client.
 
 ## Tech stack
@@ -88,5 +88,6 @@ Phases, each ending in a checkpoint and a git commit:
 - **Instant quote assistant (2026-09-18):** ✅ replaced the hero/final-CTA forms with a guided quote agent (contact captured before the price, instant price from `content/pricing.ts`, date/time booking request, "CALL NOW" VA alert on quoted-but-not-booked). Prices are rules-based by design, never AI-generated. Pricing and booking windows are PLACEHOLDERS until the owner supplies real ones. Also added a Google reviews marquee under the home feature cards.
 - **Quote assistant conversion upgrade (2026-09-18):** ✅ all ten audit fixes shipped (see PLAN.md "Conversion upgrades"). Owner decisions still pending and set as flagged defaults in `content/pricing.ts`: exact price vs range, the online-booking bonus, the 7-day price lock, and "Recommended" labeling. SMS sending must be connected (webhook automation sends `customerText`); consent wording needs attorney review.
 - **Client demo booking flow (2026-09-18):** ✅ quote assistant rebuilt as a sales mockup: bed/bath, sq ft, condition, add-ons (no prices shown in selection), one-time vs recurring, itemized exact quote, next available slot, instant "booked" + email-link message, demo card step (no card data sent). All pricing/availability are demo values.
+- **Proof update (2026-09-18):** ✅ home headline "Over 1,000 Pittsburgh Homes Cleaned. Every One Guaranteed.", neighbor-trust subheadline, star rating moved out of the hero proof row, 7 real reviews replace all placeholders.
 - **Phase 7 — Polish & QA:** not started. Still to do: Lighthouse run, full keyboard/a11y pass, reduced-motion check in a real browser, real photography.
 - **Open items:** premium-cleaning-site SKILL.md is empty (contents pending); confirm Pittsburg vs Pittsburgh; theme-factory skill not installed; vector logo preferred (transparent PNGs were cut from the raster in public/brand/); real testimonials, photos, prices, knowledge file, API key, and lead webhook from the client.

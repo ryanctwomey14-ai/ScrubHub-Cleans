@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { business } from "@/content/business";
-import { Icon, Stars } from "@/components/ui/Icon";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Dark photo hero with the quote form built in. Used on every page so the
@@ -82,7 +82,7 @@ export function DarkHero({
           <h1
             data-reveal
             data-reveal-delay="0.05"
-            className={`display mt-5 ${home ? "text-[clamp(2.75rem,5.1vw,4.5rem)]" : "text-[clamp(2.5rem,5vw,4.25rem)]"}`}
+            className={`display mt-5 ${home ? "text-[clamp(2.5rem,4.4vw,4rem)]" : "text-[clamp(2.5rem,5vw,4.25rem)]"}`}
           >
             {title}
           </h1>
@@ -123,10 +123,10 @@ export function DarkHero({
                 </a>
                 <span className="hidden h-10 w-px bg-white/15 sm:block" aria-hidden="true" />
                 <span className="flex items-center gap-2.5 text-[0.9375rem]">
-                  <Stars className="text-glint" size={15} />
+                  <Icon name="shield" size={19} className="text-glint" />
                   <span>
-                    <strong className="font-bold">{business.rating.value}</strong>
-                    <span className="text-white/70"> · {business.rating.count} reviews</span>
+                    <strong className="font-bold">{business.stats.homesCleaned} homes cleaned</strong>
+                    <span className="text-white/70"> · every one guaranteed</span>
                   </span>
                 </span>
               </>

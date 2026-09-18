@@ -34,12 +34,12 @@ export interface Service {
   seoDescription: string;
 }
 
-export interface Testimonial {
-  quote: string;
+export interface Review {
+  /** Pull quote, taken word for word from the review. */
+  title: string;
+  text: string;
   name: string;
-  context: string;
-  /** true until replaced with a real, attributable customer review. */
-  placeholder: boolean;
+  featured: boolean;
 }
 
 export interface Faq {
@@ -90,6 +90,12 @@ export const business = {
   rating: {
     value: 4.8,
     count: 160,
+  },
+
+  /** Proof numbers used in headlines. */
+  stats: {
+    homesCleaned: "1,000+",
+    homesCleanedPhrase: "Over 1,000",
   },
 
   guarantee: {
@@ -263,48 +269,59 @@ export const business = {
     },
   ] satisfies Service[],
 
-  /** PLACEHOLDER testimonials. Replace with real, attributable reviews before launch. */
-  testimonials: [
-    {
-      quote:
-        "They asked how we actually live in our house before they cleaned a single room. Six months in, it still feels like the first visit.",
-      name: "Placeholder Client",
-      context: "Maintenance clients",
-      placeholder: true,
-    },
-    {
-      quote:
-        "I pointed out one missed spot on the stairs. They were back the next morning, apologized, and fixed it. That's why we stay.",
-      name: "Placeholder Client",
-      context: "Deep clean",
-      placeholder: true,
-    },
-    {
-      quote:
-        "Our guests comment on how clean the place is in almost every review now. Turnovers are the one thing I don't worry about.",
-      name: "Placeholder Host",
-      context: "Airbnb turnovers",
-      placeholder: true,
-    },
-  ] satisfies Testimonial[],
-
   /**
-   * PLACEHOLDER Google reviews for the homepage review loop.
-   * Replace with real reviews copied from the Google Business Profile
-   * (first name + last initial, as shown on Google). Set `googleReviewsUrl`
-   * to the profile's reviews link to make the strip clickable.
+   * Real client reviews, word for word as written by the client. The first
+   * line is the pull quote shown in bold. `featured` reviews appear in the
+   * three-card reviews section; all of them appear in the scrolling loop and on
+   * /reviews. Set `reviewsUrl` to the Google Business Profile reviews link to
+   * make the review headers clickable.
    */
-  googleReviewsUrl: null as string | null,
-  googleReviews: [
-    { name: "Sample Reviewer", when: "2 weeks ago", text: "They listened to exactly what we wanted and the house has never looked better. Booking was easy.", placeholder: true },
-    { name: "Sample Reviewer", when: "1 month ago", text: "Missed one spot on the baseboards and they were back the next day to fix it. That's service.", placeholder: true },
-    { name: "Sample Reviewer", when: "1 month ago", text: "Our Airbnb turnovers are finally stress-free. Guests keep mentioning how clean it is.", placeholder: true },
-    { name: "Sample Reviewer", when: "2 months ago", text: "Deep clean before we moved in was incredible. Every cabinet, every corner.", placeholder: true },
-    { name: "Sample Reviewer", when: "2 months ago", text: "Flexible with our schedule and always on time. We've used them for over a year now.", placeholder: true },
-    { name: "Sample Reviewer", when: "3 months ago", text: "Getting a quote by text was so easy. Great team, great results.", placeholder: true },
-    { name: "Sample Reviewer", when: "3 months ago", text: "Our office has never been this clean. Reliable crew and easy to work with.", placeholder: true },
-    { name: "Sample Reviewer", when: "4 months ago", text: "Our move-out clean made the final walkthrough a breeze. Worth every penny.", placeholder: true },
-  ] satisfies { name: string; when: string; text: string; placeholder: boolean }[],
+  reviewsUrl: null as string | null,
+  reviewsSource: "Google",
+  reviews: [
+    {
+      title: "Their attention to detail and professional approach stood out to me!",
+      text: "Scrubhub Cleans LLC did an excellent job cleaning my house. Their attention to detail and professional approach stood out to me, and my area has never been cleaner. Andy and Luke were on time, pleasant, and took additional care with delicate surfaces. I strongly recommend Scrubhub Cleans LLC to anyone searching for a dependable and excellent cleaning service.",
+      name: "Tristan McDannell",
+      featured: true,
+    },
+    {
+      title: "I would highly suggest trying them out if you're looking for this type of service!",
+      text: "The young gentleman that came to my house were very polite, Clean, not intrusive at all. I have four children, and they even dealt very well with my children trying to chase them around while they're cleaning. They did everything that I ask to my standard, which is very high and did it with efficiency! Not to mention, they didn't even have time on their schedule, For when I needed my house clean, but they made it work and they did a really good job. I'm very happy and I would highly suggest trying them out if you're looking for this type of service!!!",
+      name: "Jayne Rice",
+      featured: true,
+    },
+    {
+      title: "ScrubHub cleans is one of the best around!",
+      text: "ScrubHub cleans is one of the best around! Hired them to clean my house and garage. Everything was done in a timely matter and went above and beyond, and a great price! Recommend them to everyone and will definitely be calling them again.",
+      name: "Alec Petroff",
+      featured: true,
+    },
+    {
+      title: "I highly recommend Scrubhub Cleans LLC!",
+      text: "Scrubhub Cleans works great for me and my busy schedule, they thoroughly clean, work quickly and are trustworthy to have in your home/business! I highly recommend Scrubhub Cleans LLC!!!",
+      name: "Brenda Tazza",
+      featured: false,
+    },
+    {
+      title: "Katrina did an amazing job cleaning my house!",
+      text: "I highly recommend ScurbHub Cleans if you’re looking for a cleaning service! It was super easy to schedule an appt and were flexible with my needs! Katrina did an amazing job cleaning my house! She was very thorough and took her time to make sure all my needs were met! My house looks and smells amazing! I will definitely use them again!",
+      name: "Laura",
+      featured: false,
+    },
+    {
+      title: "They did more than I expected.",
+      text: "This is the first time using this type of service and I think I have chosen the right company. The workers showed up and went right to work and they did a fantastic job. They did more than I expected. I was afraid to open my fridge but now I’m opening it up and seeing what I’m looking for. Thanks for your help.",
+      name: "Ric Sap",
+      featured: false,
+    },
+    {
+      title: "Did everything we asked and more.",
+      text: "I contracted with ScrubHub to help my sister- they were fantastic! Did everything we asked and more. They were very quick to respond to my query, were courteous, ON TIME, were very efficient, AND took their trash with them. As I recall she called the two who came as whirlwind Tasmanian Devils. She (my sister) was also very happy with the toilet paper flower in all loos. 🤣 Highly recommend.",
+      name: "Joni Braley",
+      featured: false,
+    },
+  ] satisfies Review[],
 
   faqs: [
     {

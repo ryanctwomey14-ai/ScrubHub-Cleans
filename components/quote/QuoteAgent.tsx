@@ -442,16 +442,18 @@ function BookedCard() {
   );
 }
 
-/** Social proof at the moment of decision. */
+/** Social proof at the moment of decision: the shortest real review, so it reads at a glance. */
+const decisionReview = [...business.reviews].sort((a, b) => a.text.length - b.text.length)[0];
+
 function ReviewCard() {
-  const r = business.googleReviews[0];
+  const r = decisionReview;
   if (!r) return null;
   return (
     <figure className="agent-in max-w-[92%] rounded-2xl rounded-tl-md border border-sand bg-white px-4 py-3">
       <Stars className="text-[#FBBC04]" size={12} />
       <blockquote className="mt-1.5 text-[0.8125rem] leading-snug">&ldquo;{r.text}&rdquo;</blockquote>
       <figcaption className="mt-1.5 text-[0.6875rem] text-stone">
-        {r.name} · Google{r.placeholder ? " · Sample" : ""}
+        {r.name} · {business.reviewsSource} review
       </figcaption>
     </figure>
   );

@@ -27,7 +27,7 @@ export default function ReviewsPage() {
         crumbs={[{ href: "/reviews", label: "Reviews" }]}
         form={<QuoteAgent />}
       />
-      <ReviewsBlock showLink={false} />
+      <ReviewsBlock showLink={false} all />
       <GuaranteeBand />
       <FinalCta
         title={
