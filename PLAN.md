@@ -34,6 +34,19 @@ Every page = **DarkHero with QuoteForm** → only what that page needs → proof
 - **VA alert (`abandoned`)** fires once if a quoted visitor leaves the page, navigates elsewhere on the site, or is idle for `booking.abandonAfterMs` (3 min) without booking. Sent to `VA_ALERT_WEBHOOK_URL` (falls back to `LEAD_WEBHOOK_URL`) with a "📞 CALL NOW" `text` line.
 - "Sample pricing" badge shows while `pricing.placeholder` is true.
 
+### Conversion upgrades (value equation: outcome × likelihood ÷ time × effort)
+- **Shared, saved conversation** (`lib/quote-store.ts`): one state for every assistant on the site, persisted in localStorage for the price-lock period; returning visitors get "Welcome back, {name}. Your $X price is still held."
+- **Texted quote + resume link:** "quoted" leads include `customerText` and `resumeUrl` (AES-GCM token, `QUOTE_TOKEN_SECRET`, expires with the price lock). `/api/quote/resume` reopens the quote at the booking step. Your SMS automation sends `customerText`.
+- **TCPA consent** line under the phone field (`smsConsent` in `content/pricing.ts`).
+- **Live typed opening** leading with the outcome and the promise; ★ 4.8 in the card header.
+- **Endowed progress:** bar starts ~18%, label "3 of 6 · ~15s".
+- **Curiosity gap:** blurred price preview at the phone step; "Unlock my price" with a reason why.
+- **Exact price** + recurring anchor (~~one-time~~, "You save $X every clean"), value stack, bonus and price lock (`offer`), review at the decision point.
+- **Choice architecture:** Recommended frequency, 5 dates + "More dates", "Earliest" tag, earliest date on the Book button.
+- **Mobile:** assistant sits directly under the headline; sticky "Instant price" scrolls to it.
+- **Exit intent** (desktop, once per session) reminder with the held price.
+- **Analytics:** `lib/track.ts` pushes quote_* events to GTM dataLayer / PostHog.
+
 ## Chatbot
 Unchanged: Claude Haiku 4.5 via `/api/chat`; knowledge from `content/business.ts` + `content/chatbot-knowledge.md`; `[[LEAD_FORM]]` token opens the in-chat lead form; 500-character messages, 20 requests/10 min and 80/day per visitor.
 

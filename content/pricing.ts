@@ -1,16 +1,21 @@
 /**
- * ScrubHub Cleans: instant-quote pricing and booking rules.
+ * ScrubHub Cleans: instant-quote pricing, offer, and booking rules.
  * The quote assistant prices ONLY from this file (never from the AI).
  *
- * ⚠ PLACEHOLDER NUMBERS. Replace every price below with real rates, then set
- * `placeholder: false`. While it's true, the assistant shows a "Sample pricing"
- * badge so nobody mistakes these for real prices.
+ * ⚠ PLACEHOLDERS. Replace every price and offer below with what the owner
+ * will actually honor, then set `placeholder: false` on each block. While any
+ * block is a placeholder, the assistant shows a "Sample pricing" badge.
  */
 
 import type { ServiceSlug } from "./business";
 
 export const pricing = {
   placeholder: true,
+
+  /** "exact" shows one confident price (converts better); "range" shows low–high. */
+  display: "exact" as "exact" | "range",
+  /** Only used when display = "range": estimate × (1 ± spread). */
+  spread: 0.08,
 
   /** Home services: price = base + bedrooms × perBedroom + bathrooms × perBathroom. */
   residential: {
@@ -28,18 +33,29 @@ export const pricing = {
     { label: "10,000+ sq ft", startingAt: 650 },
   ],
 
-  /** Recurring maintenance discounts (0.1 = 10% off). */
+  /** Recurring maintenance discounts (0.1 = 10% off the one-time price). */
   frequencies: [
     { label: "Weekly", discount: 0.15 },
     { label: "Every 2 weeks", discount: 0.1 },
     { label: "Monthly", discount: 0.05 },
   ],
-
-  /** Quotes show a range around the estimate: estimate × (1 ± spread). */
-  spread: 0.08,
+  /** Tagged "Recommended" in the assistant (our honest suggestion, not a popularity claim). */
+  recommendedFrequency: "Every 2 weeks",
 
   /** Zip codes we serve (prefix match). 152xx = City of Pittsburgh. */
   serviceZipPrefixes: ["150", "151", "152"],
+};
+
+/**
+ * The offer shown with every price (Hormozi: stack value, reverse risk, give a
+ * real reason to act now). ⚠ PLACEHOLDER: the owner must approve both lines.
+ */
+export const offer = {
+  placeholder: true,
+  /** Bonus for booking online. Set to null to hide. */
+  bonus: "Free inside-fridge clean on your first visit when you book online" as string | null,
+  /** How long a quoted price is held. Also sets how long the texted resume link works. */
+  priceLockDays: 7,
 };
 
 export const booking = {
@@ -47,10 +63,19 @@ export const booking = {
   leadDays: 1,
   /** How many days ahead customers can pick from. */
   daysAhead: 14,
-  /** Days you don't clean: 0 = Sunday … 6 = Saturday. PLACEHOLDER: confirm with the owner. */
+  /** Dates shown before "More dates" (fewer choices = faster decisions). */
+  daysShown: 5,
+  /** Days you don't clean: 0 = Sunday … 6 = Saturday. ⚠ PLACEHOLDER: confirm with the owner. */
   closedWeekdays: [0] as number[],
-  /** Arrival windows offered. PLACEHOLDER: confirm with the owner. */
+  /** Arrival windows offered. ⚠ PLACEHOLDER: confirm with the owner. */
   windows: ["8–10 AM", "10 AM–12 PM", "12–2 PM", "2–4 PM"],
   /** Alert the VA if a quoted visitor goes quiet this long without booking. */
   abandonAfterMs: 3 * 60 * 1000,
 };
+
+/**
+ * SMS consent shown under the phone field (TCPA). ⚠ Have the owner's attorney
+ * confirm this wording before launch.
+ */
+export const smsConsent =
+  "By tapping, you agree to receive texts from ScrubHub Cleans about your quote and booking. Msg & data rates may apply. Reply STOP to opt out.";

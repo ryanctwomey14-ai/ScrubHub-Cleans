@@ -51,11 +51,13 @@ export function DarkHero({
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-night via-night/80 to-night/20" />
 
       <div
-        className={`shell relative grid items-center gap-10 lg:grid-cols-12 lg:gap-12 ${
+        className={`shell relative grid gap-y-8 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-6 ${
           home ? "pb-36 pt-32 md:pt-40 lg:pb-44 lg:pt-44" : "pb-16 pt-32 md:pb-20 md:pt-40"
         }`}
       >
-        <div className={form ? "lg:col-span-7" : "lg:col-span-9"}>
+        {/* Mobile order: headline → quote assistant → supporting copy, so the
+            first tap is above the fold. Desktop: copy left, assistant right. */}
+        <div className={`${form ? "lg:col-span-7" : "lg:col-span-9"} lg:row-start-1 lg:self-end`}>
           {crumbs && (
             <nav aria-label="Breadcrumb" className="mb-6 text-[0.8125rem] text-mist">
               <ol className="flex flex-wrap items-center gap-2">
@@ -84,8 +86,23 @@ export function DarkHero({
           >
             {title}
           </h1>
+        </div>
+
+        {form && (
+          <div
+            data-reveal
+            data-reveal-delay="0.1"
+            data-chat-avoid
+            id="quote"
+            className="scroll-mt-24 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:self-center"
+          >
+            {form}
+          </div>
+        )}
+
+        <div className={`${form ? "lg:col-span-7" : "lg:col-span-9"} lg:row-start-2 lg:self-start`}>
           {lede && (
-            <p data-reveal data-reveal-delay="0.1" className="lede mt-6 max-w-xl text-white/75">
+            <p data-reveal data-reveal-delay="0.1" className="lede max-w-xl text-white/75 lg:mt-0">
               {lede}
             </p>
           )}
@@ -116,12 +133,6 @@ export function DarkHero({
             )}
           </div>
         </div>
-
-        {form && (
-          <div data-reveal data-reveal-delay="0.1" data-chat-avoid id="quote" className="scroll-mt-28 lg:col-span-5">
-            {form}
-          </div>
-        )}
       </div>
 
       <p className={`absolute right-4 hidden max-w-xs ${home ? "bottom-28" : "bottom-3"} text-right text-[0.6875rem] leading-snug text-white/35 lg:block`}>

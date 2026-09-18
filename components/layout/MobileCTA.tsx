@@ -1,9 +1,20 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { business } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
+import { scrollToQuote } from "@/lib/scroll-to-quote";
+import { track } from "@/lib/track";
 
-/** Always-visible booking bar on phones. The chat launcher sits above it. */
+/** Always-visible booking bar on phones. "Get a quote" jumps to the assistant on the page. */
 export function MobileCTA() {
+  const router = useRouter();
+
+  const openQuote = () => {
+    track("quote_cta_click", { from: "mobile_bar" });
+    if (!scrollToQuote()) router.push("/contact#quote");
+  };
+
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-40 border-t border-sand/80 bg-porcelain/92 px-3 pt-2.5 backdrop-blur-xl md:hidden"
@@ -22,9 +33,9 @@ export function MobileCTA() {
         >
           <Icon name="message" size={16} /> Text
         </a>
-        <Link href="/contact" className="btn btn-primary !h-12 !px-4 !text-sm">
-          Get a quote
-        </Link>
+        <button type="button" onClick={openQuote} className="btn btn-primary !h-12 !px-4 !text-sm">
+          Instant price
+        </button>
       </div>
     </div>
   );

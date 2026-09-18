@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deliverLead, parseLead } from "@/lib/leads";
+import { customerFollowUp, deliverLead, parseLead } from "@/lib/leads";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -29,8 +29,10 @@ export async function POST(req: Request) {
   const { lead, error } = parseLead(body);
   if (!lead) return NextResponse.json({ ok: false, error }, { status: 422 });
 
+  const followUp = customerFollowUp(lead);
+
   try {
-    await deliverLead(lead);
+    await deliverLead(lead, followUp);
   } catch (err) {
     console.error("[lead] delivery failed", err);
     return NextResponse.json(
@@ -39,5 +41,5 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, token: followUp?.token });
 }

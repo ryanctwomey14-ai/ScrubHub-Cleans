@@ -1,6 +1,7 @@
 import { business, type ServiceSlug } from "@/content/business";
-import { booking as bookingRules, pricing } from "@/content/pricing";
+import { booking as bookingRules, offer, pricing } from "@/content/pricing";
 import { estimate, formatQuote, type Quote } from "@/lib/quote";
+import { sealToken } from "@/lib/token";
 
 /**
  * Lead lifecycle from the quote assistant:
@@ -23,7 +24,10 @@ export interface Lead {
   source: "quote-form" | "chat" | "quote-agent";
   stage: LeadStage;
   /** Recomputed server-side from the inputs; client-sent prices are ignored. */
-  quote?: Quote & { display: string; details: Record<string, string | number | undefined> };
+  quote?: Quote & {
+    display: string;
+    details: { bedrooms?: number; bathrooms?: number; frequency?: string; sizeTier?: string };
+  };
   booking?: { date: string; window: string };
   /** Last few chat turns, when the lead came from the concierge. */
   transcript?: { role: string; content: string }[];
@@ -34,6 +38,47 @@ const clean = (v: unknown, max: number) =>
   typeof v === "string" ? v.trim().slice(0, max) : undefined;
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+
+export interface ResumeData {
+  service: ServiceSlug;
+  bedrooms?: number;
+  bathrooms?: number;
+  frequency?: string;
+  sizeTier?: string;
+  zip?: string;
+  name: string;
+  phone: string;
+}
+
+/**
+ * For "quoted" leads: an encrypted link that reopens the quote at the booking
+ * step, and the text message your SMS automation should send the customer.
+ */
+export function customerFollowUp(lead: Lead) {
+  if (lead.stage !== "quoted" || !lead.quote || !lead.phone) return undefined;
+  const d = lead.quote.details;
+  const token = sealToken(
+    {
+      service: lead.quote.service,
+      bedrooms: d.bedrooms,
+      bathrooms: d.bathrooms,
+      frequency: d.frequency,
+      sizeTier: d.sizeTier,
+      zip: lead.zip,
+      name: lead.name,
+      phone: lead.phone,
+    } satisfies ResumeData,
+    offer.priceLockDays,
+  );
+  const resumeUrl = `${business.siteUrl}/?q=${token}#quote`;
+  const first = lead.name.split(" ")[0];
+  const price = `${lead.quote.display} ${lead.quote.unit}`;
+  const customerText =
+    lead.quote.kind === "startingAt"
+      ? `Hi ${first}, it's ${business.name}. ${lead.quote.serviceName}: ${price}. Pick a walkthrough time here: ${resumeUrl} Reply STOP to opt out.`
+      : `Hi ${first}, it's ${business.name}. Your ${lead.quote.serviceName.toLowerCase()} price: ${price}. Pick your day in 10 seconds: ${resumeUrl} Reply STOP to opt out.`;
+  return { token, resumeUrl, customerText };
+}
 
 function parseQuote(raw: unknown): Lead["quote"] {
   if (!raw || typeof raw !== "object") return undefined;
@@ -136,10 +181,13 @@ async function post(url: string, payload: object) {
  *                         (falls back to LEAD_WEBHOOK_URL)
  * Without either, everything is logged to the server console.
  */
-export async function deliverLead(lead: Lead) {
+export async function deliverLead(lead: Lead, followUp?: ReturnType<typeof customerFollowUp>) {
   const payload = {
     text: headline(lead),
     ...lead,
+    // For your SMS automation: send `customerText` to `phone` when stage = "quoted".
+    customerText: followUp?.customerText,
+    resumeUrl: followUp?.resumeUrl,
     samplePricing: pricing.placeholder || undefined,
     business: business.name,
     receivedAt: new Date().toISOString(),

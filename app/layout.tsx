@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileCTA } from "@/components/layout/MobileCTA";
 import { ChatLauncher } from "@/components/chat/ChatLauncher";
+import { QuoteNudge } from "@/components/quote/QuoteNudge";
 import { JsonLd, localBusinessSchema } from "@/lib/schema";
 
 const archivo = Archivo({
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </MotionProvider>
         <MobileCTA />
         <ChatLauncher />
+        <QuoteNudge />
       </body>
     </html>
   );
