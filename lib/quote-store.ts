@@ -10,19 +10,20 @@ import { track } from "@/lib/track";
  * CTA, exit nudge), saved to localStorage so progress survives refreshes and
  * page changes, and resumable from the link we text the customer.
  *
- * Flow (home services):
- *   service → bedrooms + bathrooms → square feet → condition → [frequency]
- *   → add-ons → contact (name, mobile, email, zip) → exact price + next open
- *   slot → booked → card to lock in the cleaner (demo) → done
+ * Flow (home services), a soft sell from the first tap:
+ *   service (zero-risk micro-yes) → name, mobile, email (lead captured here)
+ *   → bedrooms + bathrooms → square feet → condition → [frequency] → add-ons
+ *   → zip → itemized price, shown in full + "want me to grab {next slot}?"
+ *   → booked → card to lock in the cleaner (demo) → done
  */
 
 export type Step =
-  | "service" | "size" | "rooms" | "sqft" | "condition" | "freq" | "addons" | "contact"
+  | "service" | "contact" | "size" | "rooms" | "sqft" | "condition" | "freq" | "addons" | "zip"
   | "quote" | "date" | "time" | "card" | "done";
 
 export type Msg =
   | { id: number; from: "bot" | "user"; text: string }
-  | { id: number; from: "bot"; card: "preview" | "quote" | "review" | "booked" };
+  | { id: number; from: "bot"; card: "quote" | "review" | "booked" };
 
 export interface Answers {
   service?: ServiceSlug;
@@ -46,6 +47,7 @@ export interface QuoteState {
   messages: Msg[];
   answers: Answers;
   lead: Record<string, unknown> | null;
+  leadAt?: number;
   quotedAt?: number;
   booked: boolean;
   cardAdded: boolean;
@@ -157,9 +159,9 @@ export function currentQuote(a: Answers): Quote | null {
 
 /** Questions for this visitor's path, used for "Question 2 of 6". */
 export function questionPath(a: Answers): Step[] {
-  if (a.service === "commercial-cleaning") return ["service", "size", "contact"];
-  if (a.service === "maintenance-cleaning") return ["service", "rooms", "sqft", "condition", "freq", "addons", "contact"];
-  return ["service", "rooms", "sqft", "condition", "addons", "contact"];
+  if (a.service === "commercial-cleaning") return ["service", "contact", "size", "zip"];
+  if (a.service === "maintenance-cleaning") return ["service", "contact", "rooms", "sqft", "condition", "freq", "addons", "zip"];
+  return ["service", "contact", "rooms", "sqft", "condition", "addons", "zip"];
 }
 
 export function bookableDays() {
@@ -209,7 +211,7 @@ async function say(user: string | null, bot: (string | Msg)[], next: Step) {
   if (!bot.length) set({ typing: false });
 }
 
-const card = (c: "preview" | "quote" | "review" | "booked"): Msg => ({ id: 0, from: "bot", card: c });
+const card = (c: "quote" | "review" | "booked"): Msg => ({ id: 0, from: "bot", card: c });
 
 function stepEvent(step: Step) {
   track("quote_step", { step, service: state.answers.service });
@@ -236,12 +238,14 @@ export async function ensureStarted(preset?: ServiceSlug) {
 
   if (state.started) {
     // Returning visitor with a saved price they haven't booked yet.
-    if (state.quotedAt && !state.booked && !sessionStorage.getItem("scrubhub-welcomed")) {
+    if (state.lead && !state.booked && !sessionStorage.getItem("scrubhub-welcomed")) {
       sessionStorage.setItem("scrubhub-welcomed", "1");
       const q = currentQuote(state.answers);
       const first = state.answers.name?.split(" ")[0];
-      if (q && first) {
+      if (state.quotedAt && q && first) {
         await say(null, [`Welcome back, ${first}. Your ${formatQuote(q)} price is still held for you.`], "quote");
+      } else if (first) {
+        await say(null, [`Welcome back, ${first}. Let's finish your quote. You're almost there.`], state.step);
       }
     }
     return;
@@ -256,17 +260,17 @@ export async function ensureStarted(preset?: ServiceSlug) {
       null,
       [
         `Get your real ${svc.shortName.toLowerCase()} price in 60 seconds. No calls, no waiting.`,
-        "A few quick taps and I'll show your exact price and the next open time.",
-        svc.slug === "commercial-cleaning" ? "How big is the space?" : "How many bedrooms and bathrooms?",
+        "A few quick taps and you'll see your exact price and the next open time.",
+        "First, who am I building this quote for?",
       ],
-      svc.slug === "commercial-cleaning" ? "size" : "rooms",
+      "contact",
     );
   } else {
     await say(
       null,
       [
         "Get your real price in 60 seconds. No calls, no waiting.",
-        "A few quick taps and I'll show your exact price and the next open time. Backed by our 24-hour make-it-right promise.",
+        "A few quick taps and you'll see your exact price and the next open time. Backed by our 24-hour make-it-right promise.",
         "What do you need cleaned?",
       ],
       "service",
@@ -285,11 +289,11 @@ async function resumeFromToken(token: string) {
     if (!json.ok || !json.data) return false;
     const a = json.data;
     if (!currentQuote(a)) return false;
-    state = { ...fresh(), started: true, answers: a, quotedAt: Date.now(), lead: leadPayload(a) };
+    state = { ...fresh(), started: true, answers: a, leadAt: Date.now(), quotedAt: Date.now(), lead: leadPayload(a, true) };
     track("quote_resumed", { service: a.service });
     await say(
       null,
-      [`Welcome back, ${a.name.split(" ")[0]}. Here's your price.`, card("quote"), "Your next open time is below. One tap and it's yours."],
+      [`Welcome back, ${a.name.split(" ")[0]}. Here's your price.`, card("quote"), closeLine()],
       "quote",
     );
     armIdle();
@@ -301,8 +305,9 @@ async function resumeFromToken(token: string) {
 
 /* ─── Lead events + VA alert ─────────────────────────────────── */
 
-function leadPayload(a: Answers) {
-  const q = currentQuote(a);
+/** The lead record. Details and price are only attached once they've seen their quote. */
+function leadPayload(a: Answers, withQuote: boolean) {
+  const q = withQuote ? currentQuote(a) : null;
   return {
     source: "quote-agent",
     page: window.location.pathname,
@@ -310,9 +315,9 @@ function leadPayload(a: Answers) {
     phone: a.phone,
     email: a.email,
     zip: a.zip,
-    service: q?.serviceName,
+    service: q?.serviceName ?? serviceOf(a.service)?.name,
     frequency: a.frequency,
-    quote: {
+    quote: withQuote && {
       service: a.service,
       bedrooms: a.bedrooms,
       bathrooms: a.bathrooms,
@@ -339,11 +344,11 @@ async function postLead(payload: Record<string, unknown>) {
   }
 }
 
-/** Quoted but not booked → "CALL NOW" to the VA. Fires once, survives page close. */
+/** Left before booking (mid-quote or after the price) → "CALL NOW" to the VA. Fires once, survives page close. */
 export function sendAbandoned() {
-  if (!state.quotedAt || state.booked || state.alerted || !state.lead) return;
+  if (!state.lead || state.booked || state.alerted) return;
   set({ alerted: true });
-  track("quote_abandoned", { service: state.answers.service });
+  track("quote_abandoned", { service: state.answers.service, reached: state.quotedAt ? "price" : state.step });
   const body = JSON.stringify({ ...state.lead, stage: "abandoned" });
   const sent = navigator.sendBeacon?.("/api/lead", new Blob([body], { type: "application/json" }));
   if (!sent) void fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
@@ -351,15 +356,23 @@ export function sendAbandoned() {
 
 /** Any interaction restarts the idle clock. */
 export function armIdle() {
-  if (!state.quotedAt || state.booked || state.alerted) return;
+  if (!state.lead || state.booked || state.alerted) return;
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(sendAbandoned, booking.abandonAfterMs);
 }
 
 /* ─── Actions ────────────────────────────────────────────────── */
 
-const toSqft = "About how many square feet? Your best guess is fine.";
-const toAddOns = "Want any extras? Tap everything you'd like, or skip.";
+const firstName = () => state.answers.name?.split(" ")[0] ?? "";
+
+/** Assumptive close: offer the next open slot as if they're already booking. */
+function closeLine() {
+  const n = nextAvailable();
+  const who = firstName();
+  return state.answers.service === "commercial-cleaning"
+    ? `${who ? `${who}, the` : "The"} next open walkthrough is ${n.label}, ${n.window}. Want me to grab it for you?`
+    : `${who ? `${who}, your` : "Your"} next open time is ${n.label}, ${n.window}. Want me to grab it for you?`;
+}
 
 async function book(date: string, win: string, userText: string): Promise<string | null> {
   if (!state.lead) return "Please get your quote first.";
@@ -368,12 +381,11 @@ async function book(date: string, win: string, userText: string): Promise<string
   if (idleTimer) clearTimeout(idleTimer);
   set((s) => ({ booked: true, answers: { ...s.answers, date, window: win } }));
   track("quote_booked", { service: state.answers.service, date, window: win });
-  const first = state.answers.name?.split(" ")[0];
   await say(
     userText,
     [
       card("booked"),
-      `You're booked, ${first}. We just sent a confirmation link to ${state.answers.email}.`,
+      `You're booked, ${firstName()}. We just sent a confirmation link to ${state.answers.email}.`,
       `Last step: add a card to lock in your cleaner. ${offer.payment}`,
     ],
     "card",
@@ -382,105 +394,131 @@ async function book(date: string, win: string, userText: string): Promise<string
 }
 
 export const actions = {
+  /** Step 1: a zero-risk tap. */
   chooseService(slug: ServiceSlug) {
     const svc = serviceOf(slug)!;
     set((s) => ({ answers: { ...s.answers, service: slug } }));
     stepEvent("service");
-    if (slug === "commercial-cleaning") void say(svc.name, ["Got it. How big is the space?"], "size");
-    else void say(svc.name, ["Got it. How many bedrooms and bathrooms?"], "rooms");
+    void say(
+      svc.name,
+      ["Great choice. Who am I building this quote for?", "I'll save it and text you a copy, so it's there whenever you need it."],
+      "contact",
+    );
+  },
+
+  /** Step 2: the lead is captured here, before any details. */
+  async submitContact(f: { name: string; phone: string; email: string }): Promise<string | null> {
+    const digits = f.phone.replace(/\D/g, "");
+    if (!f.name.trim()) return "What's your first name?";
+    if (digits.length < 10) return "Enter a 10-digit mobile number.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return "Enter your email so we can send your quote.";
+
+    const answers = { ...state.answers, name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim() };
+    const lead = leadPayload(answers, false);
+    const res = await postLead({ ...lead, stage: "started" });
+    if (!res.ok) return res.error ?? "Something went wrong. Please try again.";
+
+    set({ answers, lead, leadAt: Date.now(), alerted: false, booked: false, cardAdded: false });
+    track("quote_lead_captured", { service: answers.service });
+    armIdle();
+
+    const first = answers.name.split(" ")[0];
+    if (answers.service === "commercial-cleaning") {
+      await say(`${first} · ${answers.phone}`, [`Nice to meet you, ${first}. How big is the space?`], "size");
+    } else {
+      await say(
+        `${first} · ${answers.phone}`,
+        [`Nice to meet you, ${first}. Let's build your quote. How many bedrooms and bathrooms?`],
+        "rooms",
+      );
+    }
+    return null;
   },
 
   chooseSize(tier: string) {
+    armIdle();
     set((s) => ({ answers: { ...s.answers, sizeTier: tier } }));
     stepEvent("size");
-    void say(tier, ["Your starting price is ready. Where should we send it?"], "contact");
+    void say(tier, ["Last one: your zip code, so I can check your next open walkthrough."], "zip");
   },
 
   chooseRooms(bedrooms: number, bathrooms: number) {
+    armIdle();
     set((s) => ({ answers: { ...s.answers, bedrooms, bathrooms } }));
     stepEvent("rooms");
     const beds = bedrooms === 0 ? "Studio" : `${bedrooms === 5 ? "5+" : bedrooms} bed`;
     const baths = `${bathrooms === 4 ? "4+" : bathrooms} bath`;
-    void say(`${beds} · ${baths}`, [toSqft], "sqft");
+    void say(`${beds} · ${baths}`, ["Perfect. Roughly how many square feet? A best guess is fine."], "sqft");
   },
 
   chooseSqft(label: string) {
+    armIdle();
     set((s) => ({ answers: { ...s.answers, sqft: label } }));
     stepEvent("sqft");
     void say(
       `${label} sq ft`,
-      ["Be honest, no judgment: how's it looking right now? This keeps your price accurate, so there are no surprises."],
+      [
+        `${firstName()}, be honest, no judgment: how's it looking right now? It keeps your price exact, so there are no surprises on the day.`,
+      ],
       "condition",
     );
   },
 
   chooseCondition(id: string) {
+    armIdle();
     const c = pricing.conditions.find((x) => x.id === id)!;
     set((s) => ({ answers: { ...s.answers, condition: id } }));
     stepEvent("condition");
+    const reassure = id === "heavy" || id === "overdue" ? "No problem at all. That's exactly what we're here for." : "Good to know.";
     if (state.answers.service === "maintenance-cleaning") {
-      void say(c.label, ["How often? One-time, or a plan that saves you money on every visit?"], "freq");
+      void say(c.label, [`${reassure} How often should we come? Plans save you money on every single visit.`], "freq");
     } else {
-      void say(c.label, [toAddOns], "addons");
+      void say(c.label, [`${reassure} Almost done. Want any extras while we're there? Tap any that apply.`], "addons");
     }
   },
 
   chooseFreq(label: string) {
+    armIdle();
+    const f = pricing.frequencies.find((x) => x.label === label);
     set((s) => ({ answers: { ...s.answers, frequency: label } }));
     stepEvent("freq");
-    void say(label, [toAddOns], "addons");
+    const nod =
+      f && f.discount > 0 ? `Smart move. That saves you ${Math.round(f.discount * 100)}% on every visit.` : "Got it, one-time it is.";
+    void say(label, [`${nod} Almost done. Want any extras while we're there? Tap any that apply.`], "addons");
   },
 
   chooseAddOns(ids: string[]) {
+    armIdle();
     set((s) => ({ answers: { ...s.answers, addOns: ids } }));
     stepEvent("addons");
     const names = pricing.addOns.filter((a) => ids.includes(a.id)).map((a) => a.label);
-    void say(
-      names.length ? names.join(", ") : "No extras",
-      ["Your exact price is ready.", card("preview"), "Where should we send it? We'll text and email your quote so you can book in one tap."],
-      "contact",
-    );
+    void say(names.length ? names.join(", ") : "No extras", ["Last one: your zip code, so I can check your next open time."], "zip");
   },
 
-  async submitContact(f: { name: string; phone: string; email: string; zip: string }): Promise<string | null> {
-    const digits = f.phone.replace(/\D/g, "");
-    if (!f.name.trim()) return "What's your first name?";
-    if (digits.length < 10) return "Enter a 10-digit mobile number.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return "Enter your email so we can send your confirmation link.";
-    if (!/^\d{5}$/.test(f.zip.trim())) return "Enter your 5-digit zip code.";
-
-    const answers = { ...state.answers, name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim(), zip: f.zip.trim() };
+  /** Final question, then the full itemized price (never hidden) and an assumptive close. */
+  async submitZip(zip: string): Promise<string | null> {
+    if (!/^\d{5}$/.test(zip)) return "Enter a 5-digit zip code.";
+    const answers = { ...state.answers, zip };
     const q = currentQuote(answers);
     if (!q) return "Something went wrong. Please call or text us.";
 
-    track("quote_contact_submitted", { service: answers.service });
-    const lead = leadPayload(answers);
+    const lead = leadPayload(answers, true);
     const res = await postLead({ ...lead, stage: "quoted" });
     if (!res.ok) return res.error ?? "Something went wrong. Please try again.";
 
-    // The blurred preview "unlocks" into the real price.
-    set((s) => ({
-      answers,
-      lead,
-      quotedAt: Date.now(),
-      alerted: false,
-      booked: false,
-      cardAdded: false,
-      messages: s.messages.filter((m) => !("card" in m && m.card === "preview")),
-    }));
+    set({ answers, lead, quotedAt: Date.now() });
     track("quote_shown", { service: q.service, price: q.low, unit: q.unit });
     armIdle();
 
-    const coverage = inServiceArea(answers.zip) ? [] : [`${answers.zip} is just outside our usual area. We'll confirm coverage personally.`];
     await say(
-      `${answers.name.split(" ")[0]} · ${answers.phone}`,
+      zip,
       [
+        inServiceArea(zip)
+          ? `Good news: we clean in ${zip}. Here's your exact price.`
+          : `${zip} is just outside our usual area, but we'll confirm personally. Here's your price.`,
         card("quote"),
-        ...coverage,
         card("review"),
-        q.kind === "startingAt"
-          ? "Final price comes after a quick walkthrough. Your next open walkthrough time is below."
-          : "Your next open time is below. One tap and it's yours.",
+        closeLine(),
       ],
       "quote",
     );
@@ -490,13 +528,13 @@ export const actions = {
   bookNextAvailable(): Promise<string | null> {
     armIdle();
     const n = nextAvailable();
-    return book(n.iso, n.window, `Book ${n.label}, ${n.window}`);
+    return book(n.iso, n.window, "Yes, book it");
   },
 
   seeOtherTimes() {
     armIdle();
     track("quote_other_times");
-    void say("See other times", ["Pick your day."], "date");
+    void say("See other times", ["No problem. Pick the day that works best."], "date");
   },
 
   chooseDate(iso: string, label: string) {
@@ -525,7 +563,7 @@ export const actions = {
       "Card added",
       [
         `You're locked in for ${dayLabel(date)}, ${win}. Your cleaner is being scheduled now.`,
-        `Nothing is charged today. ${offer.payment} See you soon.`,
+        `Nothing is charged today. ${offer.payment} See you soon, ${firstName()}.`,
       ],
       "done",
     );
@@ -542,7 +580,7 @@ export const actions = {
   },
 
   restart() {
-    if (state.quotedAt && !state.booked) sendAbandoned();
+    if (state.lead && !state.booked) sendAbandoned();
     if (idleTimer) clearTimeout(idleTimer);
     state = { ...fresh(), started: true };
     persist();

@@ -79,7 +79,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
     : s.booked
       ? "Booked"
       : s.quotedAt
-        ? "Price unlocked"
+        ? "Your price"
         : asking
           ? `${qIndex + 1} of ${path.length} · ~${secondsLeft}s`
           : "Starting…";
@@ -227,6 +227,8 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
               <ContactInput sending={sending} onSubmit={(f) => run(() => actions.submitContact(f))} />
             )}
 
+            {s.step === "zip" && <ZipInput sending={sending} onSubmit={(zip) => run(() => actions.submitZip(zip))} />}
+
             {s.step === "quote" && q && (
               <div className="grid gap-2.5">
                 <div className="flex items-center justify-between gap-3 rounded-xl border-[1.5px] border-hub/30 bg-white px-4 py-3">
@@ -244,7 +246,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
                   onClick={() => run(actions.bookNextAvailable)}
                   className="btn btn-primary !h-14 w-full !text-base"
                 >
-                  {sending ? "Booking…" : q.kind === "startingAt" ? "Book this walkthrough" : "Book this time"}
+                  {sending ? "Booking…" : q.kind === "startingAt" ? "Yes, book my walkthrough" : "Yes, book it"}
                   <Icon name="arrow" size={18} className="btn-arrow" />
                 </button>
                 <div className="flex items-center justify-between text-[0.8125rem]">
@@ -345,7 +347,6 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
 
 function Message({ m }: { m: Msg }) {
   if ("card" in m) {
-    if (m.card === "preview") return <PreviewCard />;
     if (m.card === "quote") return <QuoteCard />;
     if (m.card === "booked") return <BookedCard />;
     return <ReviewCard />;
@@ -356,24 +357,6 @@ function Message({ m }: { m: Msg }) {
     <p className="agent-in ml-auto w-fit max-w-[80%] rounded-2xl rounded-tr-md bg-hub px-4 py-2.5 text-[0.9375rem] font-semibold leading-snug text-white">
       {m.text}
     </p>
-  );
-}
-
-/** Curiosity gap: the price exists, it just needs contact details to unlock. */
-function PreviewCard() {
-  return (
-    <div className="agent-in on-ink relative overflow-hidden rounded-2xl bg-ink px-4 py-4 text-white">
-      <p className="text-[0.8125rem] text-mist">Your exact price</p>
-      <p className="display mt-1 select-none text-[2rem] leading-none blur-[7px]" aria-hidden="true">
-        $1,234
-      </p>
-      <p className="mt-2 select-none text-[0.75rem] text-mist blur-[4px]" aria-hidden="true">
-        Itemized, with your next open time
-      </p>
-      <span className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[0.75rem] font-bold ring-1 ring-white/15">
-        <Icon name="key" size={14} /> Unlocks below
-      </span>
-    </div>
   );
 }
 
@@ -594,14 +577,13 @@ function ContactInput({
   onSubmit,
   sending,
 }: {
-  onSubmit: (f: { name: string; phone: string; email: string; zip: string }) => void;
+  onSubmit: (f: { name: string; phone: string; email: string }) => void;
   sending: boolean;
 }) {
-  const [f, setF] = useState({ name: "", phone: "", email: "", zip: "" });
+  const [f, setF] = useState({ name: "", phone: "", email: "" });
   const bind = (k: keyof typeof f) => ({
     value: f[k],
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-      setF((p) => ({ ...p, [k]: k === "zip" ? e.target.value.replace(/\D/g, "").slice(0, 5) : e.target.value })),
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setF((p) => ({ ...p, [k]: e.target.value })),
   });
   return (
     <form
@@ -613,20 +595,45 @@ function ContactInput({
     >
       <div className="grid grid-cols-2 gap-2">
         <label htmlFor="agent-name" className="sr-only">First name</label>
-        <input id="agent-name" autoFocus autoComplete="given-name" placeholder="First name" className="field !h-12" {...bind("name")} />
+        <input id="agent-name" autoComplete="given-name" placeholder="First name" className="field !h-12" {...bind("name")} />
         <label htmlFor="agent-phone" className="sr-only">Mobile number</label>
         <input id="agent-phone" type="tel" autoComplete="tel" placeholder="Mobile number" className="field !h-12" {...bind("phone")} />
       </div>
-      <div className="grid grid-cols-[1fr_7rem] gap-2">
-        <label htmlFor="agent-email" className="sr-only">Email</label>
-        <input id="agent-email" type="email" autoComplete="email" placeholder="Email" className="field !h-12" {...bind("email")} />
-        <label htmlFor="agent-zip" className="sr-only">Zip code</label>
-        <input id="agent-zip" inputMode="numeric" autoComplete="postal-code" placeholder="Zip" className="field !h-12" {...bind("zip")} />
-      </div>
+      <label htmlFor="agent-email" className="sr-only">Email</label>
+      <input id="agent-email" type="email" autoComplete="email" placeholder="Email" className="field !h-12" {...bind("email")} />
       <button type="submit" disabled={sending} className="btn btn-primary !h-12 w-full">
-        {sending ? "Unlocking…" : "Unlock my price"} <Icon name="key" size={16} />
+        {sending ? "Saving…" : "Build my quote"} <Icon name="arrow" size={16} className="btn-arrow" />
       </button>
       <p className="text-[0.625rem] leading-snug text-stone">{smsConsent}</p>
+    </form>
+  );
+}
+
+function ZipInput({ onSubmit, sending }: { onSubmit: (zip: string) => void; sending: boolean }) {
+  const [zip, setZip] = useState("");
+  return (
+    <form
+      className="flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(zip.trim());
+      }}
+    >
+      <label htmlFor="agent-zip" className="sr-only">Zip code</label>
+      <input
+        id="agent-zip"
+        autoFocus
+        inputMode="numeric"
+        autoComplete="postal-code"
+        maxLength={5}
+        value={zip}
+        onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
+        placeholder="Zip code"
+        className="field !h-12 flex-1"
+      />
+      <button type="submit" disabled={sending} className="btn btn-primary !h-12 !px-5">
+        {sending ? "Pricing…" : "See my price"} <Icon name="arrow" size={16} />
+      </button>
     </form>
   );
 }

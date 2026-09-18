@@ -5,13 +5,14 @@ import { sealToken } from "@/lib/token";
 
 /**
  * Lead lifecycle from the quote assistant:
- *   quoted    → saw a price (contact captured before the reveal)
+ *   started   → gave name, mobile, email at step 2 (before any details)
+ *   quoted    → saw their itemized price
  *   booked    → took an arrival slot (next available or one they picked)
  *   card_added→ added a card to lock in the cleaner (demo: no card data is ever sent)
- *   abandoned → got a price but left or went quiet without booking → VA alert
+ *   abandoned → left or went quiet before booking (mid-quote or after the price) → VA alert
  * Other sources (chat, plain forms) arrive as "inquiry".
  */
-export type LeadStage = "inquiry" | "quoted" | "booked" | "card_added" | "abandoned";
+export type LeadStage = "inquiry" | "started" | "quoted" | "booked" | "card_added" | "abandoned";
 
 export interface Lead {
   name: string;
@@ -133,7 +134,11 @@ export function parseLead(body: Record<string, unknown>): { lead?: Lead; error?:
   const email = clean(body.email, 160);
   const source = body.source === "chat" || body.source === "quote-agent" ? body.source : "quote-form";
   const stage: LeadStage =
-    body.stage === "quoted" || body.stage === "booked" || body.stage === "card_added" || body.stage === "abandoned"
+    body.stage === "started" ||
+    body.stage === "quoted" ||
+    body.stage === "booked" ||
+    body.stage === "card_added" ||
+    body.stage === "abandoned"
       ? body.stage
       : "inquiry";
 
@@ -180,7 +185,11 @@ function headline(lead: Lead) {
   const what = lead.quote ? `${lead.quote.serviceName}, quoted ${lead.quote.display} ${lead.quote.unit}` : lead.service ?? "general inquiry";
   switch (lead.stage) {
     case "abandoned":
-      return `📞 CALL NOW: ${who} got a quote but did NOT book. ${what}.`;
+      return lead.quote
+        ? `📞 CALL NOW: ${who} got a quote but did NOT book. ${what}.`
+        : `📞 CALL NOW: ${who} started a ${lead.service ?? "cleaning"} quote but didn't finish. Help them finish it.`;
+    case "started":
+      return `📝 New lead (quote in progress): ${who}, ${lead.service ?? "cleaning"}.`;
     case "booked":
       return `✅ Booked: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window}. Send the email confirmation link.`;
     case "card_added":
