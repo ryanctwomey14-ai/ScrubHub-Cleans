@@ -80,15 +80,15 @@ export function DarkHero({
       )}
 
       <div
-        className={`shell relative grid gap-y-8 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-6 ${
-          home ? "pb-32 pt-28 md:pt-36 lg:pb-32 lg:pt-36" : "pb-16 pt-32 md:pb-20 md:pt-40"
+        className={`shell relative grid gap-y-6 md:gap-y-8 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-6 ${
+          home ? "pb-32 pt-24 md:pt-36 lg:pb-32 lg:pt-36" : "pb-12 pt-24 md:pb-20 md:pt-40"
         }`}
       >
         {/* Mobile order: headline → quote assistant → supporting copy, so the
             first tap is above the fold. Desktop: copy left, assistant right. */}
         <div className={`${form ? "lg:col-span-7" : "lg:col-span-9"} lg:row-start-1 lg:self-end`}>
           {crumbs && (
-            <nav aria-label="Breadcrumb" className="mb-6 text-[0.8125rem] text-mist">
+            <nav aria-label="Breadcrumb" className="mb-6 hidden text-[0.8125rem] text-mist md:block">
               <ol className="flex flex-wrap items-center gap-2">
                 <li>
                   <Link href="/" className="hover:text-white">Home</Link>
@@ -108,7 +108,7 @@ export function DarkHero({
           )}
 
           {banner && (
-            <div data-reveal className="mb-6">
+            <div data-reveal className="mb-4 md:mb-6">
               {banner}
             </div>
           )}
@@ -116,7 +116,7 @@ export function DarkHero({
           <h1
             data-reveal
             data-reveal-delay="0.05"
-            className={`display ${eyebrow ? "mt-5" : ""} ${home ? "text-[clamp(2.5rem,4.4vw,4rem)]" : "text-[clamp(2.5rem,5vw,4.25rem)]"}`}
+            className={`display ${eyebrow ? "mt-3 md:mt-5" : ""} ${home ? "text-[clamp(2.125rem,4.4vw,4rem)]" : "text-[clamp(2.125rem,5vw,4.25rem)]"}`}
           >
             {title}
           </h1>
@@ -127,6 +127,7 @@ export function DarkHero({
             data-reveal
             data-reveal-delay="0.1"
             data-chat-avoid
+            data-quote-form
             id="quote"
             className="scroll-mt-24 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:self-center"
           >
@@ -141,7 +142,7 @@ export function DarkHero({
             </p>
           )}
 
-          <div data-reveal data-reveal-delay="0.15" className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+          <div data-reveal data-reveal-delay="0.15" className="mt-6 flex md:mt-8 flex-wrap items-center gap-x-6 gap-y-4">
             {children ?? (
               <>
                 <a href={business.contact.phoneHref} className="group flex items-center gap-3">

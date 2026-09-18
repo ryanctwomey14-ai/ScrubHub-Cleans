@@ -27,8 +27,6 @@ const BATHROOMS = [
   { label: "1", value: 1 }, { label: "2", value: 2 }, { label: "3", value: 3 }, { label: "4+", value: 4 },
 ];
 
-const samplePricing = pricing.placeholder || offer.placeholder;
-
 /**
  * Instant quote assistant, built on Hormozi's value equation:
  *   dream outcome ↑ (spotless home, no effort)  ·  perceived likelihood ↑ (4.8★, 24-hour promise)
@@ -61,7 +59,6 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
   const asking = qIndex >= 0 && !s.quotedAt;
   // Endowed progress: the bar starts with a head start and only moves forward.
   const progress = s.quotedAt ? 100 : asking ? Math.round(18 + (72 * qIndex) / path.length) : 12;
-  const secondsLeft = asking ? Math.max(5, (path.length - qIndex) * 8) : 0;
   const days = bookableDays();
   const next = nextAvailable();
   const tall = s.step === "quote" || s.step === "card";
@@ -74,16 +71,6 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
     if (err) setError(err);
   };
 
-  const status = s.cardAdded
-    ? "Locked in"
-    : s.booked
-      ? "Booked"
-      : s.quotedAt
-        ? "Your price"
-        : asking
-          ? `${qIndex + 1} of ${path.length} · ~${secondsLeft}s`
-          : "Starting…";
-
   return (
     <div
       onPointerDown={armIdle}
@@ -91,9 +78,9 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
       className={`flex flex-col overflow-hidden rounded-2xl bg-white text-ink shadow-[0_30px_70px_-30px_rgba(8,18,38,0.55)] ${className}`}
     >
       {/* Header: who, proof, progress */}
-      <div className="border-b border-sand px-5 pb-4 pt-5 md:px-6">
+      <div className="border-b border-sand px-4 pb-3 pt-4 md:px-6 md:pb-4 md:pt-5">
         <div className="flex items-center gap-3">
-          <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink">
+          <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink md:h-11 md:w-11">
             <Image src="/brand/mark.png" alt="" width={300} height={338} className="h-6 w-auto" />
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-[#22c55e]" aria-hidden="true" />
           </span>
@@ -106,25 +93,14 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
               <strong className="text-ink">{business.rating.value}</strong> · {business.rating.count} reviews
             </p>
           </div>
-          {samplePricing && (
-            <span
-              title="Prices, offer, and availability are demo placeholders from content/pricing.ts."
-              className="shrink-0 rounded-md bg-[#fff4e5] px-2 py-1 text-[0.625rem] font-bold uppercase tracking-wide text-[#9a5b00]"
-            >
-              Sample<span className="hidden sm:inline"> pricing</span>
-            </span>
-          )}
         </div>
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-3 flex items-center gap-3 md:mt-4">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-linen" aria-hidden="true">
             <div
               className="h-full rounded-full bg-gradient-to-r from-hub to-glint transition-[width] duration-700 ease-[var(--ease-out-expo)]"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span className="shrink-0 text-[0.6875rem] font-bold uppercase tracking-wide text-stone" aria-live="polite">
-            {status}
-          </span>
         </div>
       </div>
 
@@ -133,8 +109,8 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
         ref={scrollRef}
         data-lenis-prevent
         aria-live="polite"
-        className={`relative space-y-2.5 overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-width:thin] transition-[height] duration-500 md:px-6 ${
-          tall ? "h-[24rem] md:h-[25rem]" : "h-[15rem]"
+        className={`relative space-y-2.5 overflow-y-auto overscroll-contain px-4 py-3.5 md:py-4 [scrollbar-width:thin] transition-[height] duration-500 md:px-6 ${
+          tall ? "h-[22rem] md:h-[25rem]" : "h-[10.5rem] md:h-[15rem]"
         }`}
       >
         {s.messages.map((m) => (
@@ -150,7 +126,7 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
       </div>
 
       {/* One decision at a time */}
-      <div className="border-t border-sand bg-porcelain/60 px-5 pb-5 pt-4 md:px-6">
+      <div className="border-t border-sand bg-porcelain/60 px-4 pb-4 pt-3.5 md:px-6 md:pb-5 md:pt-4">
         {s.typing ? (
           <div className="h-11" aria-hidden="true" />
         ) : (
@@ -243,10 +219,10 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
                 <button
                   type="button"
                   disabled={sending}
-                  onClick={() => run(actions.bookNextAvailable)}
+                  onClick={actions.bookNextAvailable}
                   className="btn btn-primary !h-14 w-full !text-base"
                 >
-                  {sending ? "Booking…" : q.kind === "startingAt" ? "Yes, book my walkthrough" : "Yes, book it"}
+                  {q.kind === "startingAt" ? "Yes, book my walkthrough" : "Yes, book it"}
                   <Icon name="arrow" size={18} className="btn-arrow" />
                 </button>
                 <div className="flex items-center justify-between text-[0.8125rem]">
@@ -297,11 +273,19 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
             {s.step === "time" && (
               <Chips cols={2}>
                 {booking.windows.map((w) => (
-                  <Chip key={w} onClick={() => run(() => actions.chooseWindow(w))}>
+                  <Chip key={w} onClick={() => actions.chooseWindow(w)}>
                     {w}
                   </Chip>
                 ))}
               </Chips>
+            )}
+
+            {s.step === "address" && (
+              <AddressInput
+                zip={s.answers.zip}
+                sending={sending}
+                onSubmit={(f) => run(() => actions.submitAddress(f))}
+              />
             )}
 
             {s.step === "card" && <CardInput sending={sending} onSubmit={() => run(actions.addCard)} />}
@@ -326,13 +310,13 @@ export function QuoteAgent({ defaultService = "", className = "" }: { defaultSer
             {(s.step === "service" || s.step === "rooms" || s.step === "size") && !s.quotedAt && (
               <p className="mt-3 text-center text-[0.75rem] text-stone">
                 No calls needed. Rather talk?{" "}
-                <a href={business.contact.phoneHref} className="font-bold text-ink hover:underline">
+                <a href={business.contact.phoneHref} className="-my-2 inline-block py-2 font-bold text-ink hover:underline">
                   {business.contact.phoneDisplay}
                 </a>
               </p>
             )}
             {s.answers.service && !s.quotedAt && s.step !== "service" && (
-              <button type="button" onClick={actions.restart} className="mt-2 block w-full text-center text-[0.75rem] text-stone hover:text-ink">
+              <button type="button" onClick={actions.restart} className="mt-1 block w-full py-2 text-center text-[0.75rem] text-stone hover:text-ink">
                 Start over
               </button>
             )}
@@ -438,6 +422,13 @@ function BookedCard() {
           {q.serviceName} · {formatQuote(q)} {q.unit}
         </p>
       )}
+      {s.answers.address && (
+        <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-stone">
+          <Icon name="pin" size={13} className="shrink-0 text-[#15803d]" />
+          {[s.answers.address, s.answers.unit].filter(Boolean).join(", ")}
+          {s.answers.zip ? ` ${s.answers.zip}` : ""}
+        </p>
+      )}
     </div>
   );
 }
@@ -462,7 +453,7 @@ function ReviewCard() {
 /* ─── Inputs ────────────────────────────────────────────────── */
 
 function Chips({ children, cols }: { children: React.ReactNode; cols?: number }) {
-  const grid = cols ? { 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 6: "grid-cols-3 sm:grid-cols-6" }[cols] : "";
+  const grid = cols ? { 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 6: "grid-cols-[1.6fr_repeat(5,minmax(0,1fr))]" }[cols] : "";
   return <div className={cols ? `grid gap-2 ${grid}` : "flex flex-wrap gap-2"}>{children}</div>;
 }
 
@@ -482,7 +473,7 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`min-h-11 rounded-xl border-[1.5px] px-3 py-2 text-[0.9375rem] font-bold transition-all duration-200 hover:-translate-y-px hover:border-hub active:translate-y-0 ${
+      className={`min-h-11 min-w-0 rounded-xl border-[1.5px] px-2 py-2 text-center text-[0.9375rem] font-bold transition-all duration-200 hover:-translate-y-px hover:border-hub active:translate-y-0 ${
         selected ? "border-hub bg-hub text-white" : highlight ? "border-hub bg-white text-ink ring-2 ring-hub/15" : "border-sand bg-white text-ink hover:text-hub"
       }`}
     >
@@ -606,7 +597,7 @@ function ContactInput({
       <button type="submit" disabled={sending} className="btn btn-primary !h-12 w-full">
         {sending ? "Saving…" : "Build my quote"} <Icon name="arrow" size={16} className="btn-arrow" />
       </button>
-      <p className="text-[0.625rem] leading-snug text-stone">{smsConsent}</p>
+      <p className="text-[0.6875rem] leading-snug text-stone">{smsConsent}</p>
     </form>
   );
 }
@@ -636,6 +627,68 @@ function ZipInput({ onSubmit, sending }: { onSubmit: (zip: string) => void; send
       <button type="submit" disabled={sending} className="btn btn-primary !h-12 !px-5">
         {sending ? "Pricing…" : "See my price"} <Icon name="arrow" size={16} />
       </button>
+    </form>
+  );
+}
+
+/** Where we're cleaning. Zip is already known from the quote, so this is just the street. */
+function AddressInput({
+  zip,
+  onSubmit,
+  sending,
+}: {
+  zip?: string;
+  onSubmit: (f: { address: string; unit: string; notes: string }) => void;
+  sending: boolean;
+}) {
+  const [address, setAddress] = useState("");
+  const [unit, setUnit] = useState("");
+  const [notes, setNotes] = useState("");
+  return (
+    <form
+      className="grid gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit({ address, unit, notes });
+      }}
+    >
+      <div className="grid grid-cols-[1fr_5.5rem] gap-2">
+        <label htmlFor="agent-address" className="sr-only">Street address</label>
+        <input
+          id="agent-address"
+          autoFocus
+          autoComplete="address-line1"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="Street address"
+          className="field !h-12"
+        />
+        <label htmlFor="agent-unit" className="sr-only">Apartment or unit (optional)</label>
+        <input
+          id="agent-unit"
+          autoComplete="address-line2"
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+          placeholder="Apt"
+          className="field !h-12 !px-3"
+        />
+      </div>
+      <label htmlFor="agent-notes" className="sr-only">Access notes (optional)</label>
+      <input
+        id="agent-notes"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Gate code, parking, pets? (optional)"
+        className="field !h-12"
+      />
+      <button type="submit" disabled={sending} className="btn btn-primary !h-12 w-full">
+        {sending ? "Booking…" : "Confirm my booking"} <Icon name="arrow" size={16} className="btn-arrow" />
+      </button>
+      <p className="flex items-center justify-center gap-1.5 text-[0.75rem] text-stone">
+        <Icon name="pin" size={12} className="shrink-0" />
+        {business.location.city}, {business.location.region}
+        {zip ? ` ${zip}` : ""} · Only used for your clean
+      </p>
     </form>
   );
 }

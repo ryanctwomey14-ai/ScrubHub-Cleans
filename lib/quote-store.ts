@@ -19,7 +19,7 @@ import { track } from "@/lib/track";
 
 export type Step =
   | "service" | "contact" | "size" | "rooms" | "sqft" | "condition" | "freq" | "addons" | "zip"
-  | "quote" | "date" | "time" | "card" | "done";
+  | "quote" | "date" | "time" | "address" | "card" | "done";
 
 export type Msg =
   | { id: number; from: "bot" | "user"; text: string }
@@ -40,6 +40,9 @@ export interface Answers {
   email?: string;
   date?: string;
   window?: string;
+  address?: string;
+  unit?: string;
+  notes?: string;
 }
 
 export interface QuoteState {
@@ -374,12 +377,28 @@ function closeLine() {
     : `${who ? `${who}, your` : "Your"} next open time is ${n.label}, ${n.window}. Want me to grab it for you?`;
 }
 
-async function book(date: string, win: string, userText: string): Promise<string | null> {
+/** Slot chosen: hold it and ask where we're cleaning. Still unbooked, so the idle "call now" alert stays armed. */
+function holdSlot(date: string, win: string, userText: string) {
+  armIdle();
+  set((s) => ({ answers: { ...s.answers, date, window: win } }));
+  track("quote_slot_held", { service: state.answers.service, date, window: win });
+  void say(
+    userText,
+    [`Great, I'm holding ${dayLabel(date)}, ${win} for you. What's the address for the clean?`],
+    "address",
+  );
+}
+
+const bookingOf = (a: Answers) => ({ date: a.date, window: a.window, address: a.address, unit: a.unit, notes: a.notes });
+
+async function book(userText: string): Promise<string | null> {
   if (!state.lead) return "Please get your quote first.";
-  const res = await postLead({ ...state.lead, stage: "booked", booking: { date, window: win } });
+  const { date, window: win } = state.answers;
+  if (!date || !win) return "Pick a time first.";
+  const res = await postLead({ ...state.lead, stage: "booked", booking: bookingOf(state.answers) });
   if (!res.ok) return res.error ?? "Couldn't book that. Please call or text us.";
   if (idleTimer) clearTimeout(idleTimer);
-  set((s) => ({ booked: true, answers: { ...s.answers, date, window: win } }));
+  set({ booked: true });
   track("quote_booked", { service: state.answers.service, date, window: win });
   await say(
     userText,
@@ -525,10 +544,9 @@ export const actions = {
     return null;
   },
 
-  bookNextAvailable(): Promise<string | null> {
-    armIdle();
+  bookNextAvailable() {
     const n = nextAvailable();
-    return book(n.iso, n.window, "Yes, book it");
+    holdSlot(n.iso, n.window, "Yes, book it");
   },
 
   seeOtherTimes() {
@@ -543,9 +561,20 @@ export const actions = {
     void say(label, ["What arrival window works best?"], "time");
   },
 
-  chooseWindow(w: string): Promise<string | null> {
+  chooseWindow(w: string) {
     const date = state.answers.date!;
-    return book(date, w, `${dayLabel(date)}, ${w}`);
+    holdSlot(date, w, `${dayLabel(date)}, ${w}`);
+  },
+
+  /** The last detail before the booking is real. Zip is already known, so it's just the street. */
+  submitAddress(f: { address: string; unit: string; notes: string }): Promise<string | null> {
+    const address = f.address.trim();
+    if (address.length < 5 || !/\d/.test(address) || !/[a-z]/i.test(address)) {
+      return Promise.resolve("Enter the street address, like 123 Main St.");
+    }
+    set((s) => ({ answers: { ...s.answers, address, unit: f.unit.trim() || undefined, notes: f.notes.trim() || undefined } }));
+    const line = [address, f.unit.trim()].filter(Boolean).join(", ");
+    return book(line);
   },
 
   /**
@@ -555,7 +584,7 @@ export const actions = {
   async addCard(): Promise<string | null> {
     const { date, window: win } = state.answers;
     if (!state.lead || !date || !win) return "Book a time first.";
-    const res = await postLead({ ...state.lead, stage: "card_added", booking: { date, window: win }, cardOnFile: "demo" });
+    const res = await postLead({ ...state.lead, stage: "card_added", booking: bookingOf(state.answers), cardOnFile: "demo" });
     if (!res.ok) return res.error ?? "Couldn't save that. Please call or text us.";
     set({ cardAdded: true });
     track("quote_card_added", { service: state.answers.service });

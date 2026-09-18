@@ -19,7 +19,6 @@ export interface ServiceCardProps extends React.HTMLAttributes<HTMLDivElement> {
   imageAlt: string;
   /** Shown on the placeholder until `imageUrl` is set: the exact photo to shoot. */
   photoBrief?: string;
-  logo?: React.ReactNode;
   title: string;
   href?: string;
   subtitle: string;
@@ -37,7 +36,6 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
       imageUrl,
       imageAlt,
       photoBrief,
-      logo,
       title,
       href,
       subtitle,
@@ -54,7 +52,7 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
         ref={ref}
         className={cn(
           "group relative flex w-full overflow-hidden rounded-2xl bg-night text-white",
-          compact ? "min-h-[19rem]" : "min-h-[27rem]",
+          compact ? "min-h-[19rem]" : "min-h-[22rem] md:min-h-[27rem]",
           "shadow-[0_24px_50px_-30px_rgba(8,18,38,0.6)] transition-all duration-300 ease-out",
           "can-hover:hover:-translate-y-2 can-hover:hover:shadow-[0_36px_70px_-30px_rgba(8,18,38,0.75)]",
           className,
@@ -67,7 +65,7 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
             src={imageUrl}
             alt={imageAlt}
             fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            sizes={compact ? "(min-width: 1024px) 20vw, (min-width: 640px) 50vw, 250px" : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"}
             className="object-cover transition-transform duration-700 ease-out can-hover:group-hover:scale-110"
           />
         ) : (
@@ -94,13 +92,8 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
 
         {/* Content */}
         <div className={cn("relative flex w-full flex-col justify-between", compact ? "p-5" : "p-6 md:p-7")}>
-          {/* Top: icon + photo label */}
-          <div className="flex items-start justify-between gap-3">
-            {logo && (
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white/40 bg-white/10 text-glint backdrop-blur-sm">
-                {logo}
-              </div>
-            )}
+          {/* Top: photo label (until a real photo exists) */}
+          <div className="flex items-start justify-end gap-3">
             {!imageUrl && photoBrief && !compact && (
               <span
                 title={photoBrief}
@@ -112,7 +105,7 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
           </div>
 
           {/* Details */}
-          <div className={cn("space-y-4", compact ? "mt-auto pt-10" : "mt-24")}>
+          <div className={cn("space-y-4", compact ? "mt-auto pt-10" : "mt-auto pt-16 md:mt-24 md:pt-0")}>
             <div>
               <h3 className={cn("display leading-tight !font-bold", compact ? "text-[1.375rem]" : "text-[1.75rem]")}>
                 {href ? (

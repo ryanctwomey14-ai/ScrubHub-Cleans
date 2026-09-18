@@ -11,14 +11,9 @@ function ReviewCard({ review }: { review: Review }) {
       </div>
       <p className="mt-3 text-[0.9375rem] font-bold leading-snug text-ink">&ldquo;{review.title}&rdquo;</p>
       <blockquote className="mt-2 line-clamp-4 flex-1 text-[0.875rem] leading-relaxed text-stone">{review.text}</blockquote>
-      <figcaption className="mt-4 flex items-center gap-3 text-[0.8125rem]">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-linen font-bold text-hub" aria-hidden="true">
-          {review.name.charAt(0)}
-        </span>
-        <span>
-          <span className="block font-bold">{review.name}</span>
-          <span className="text-stone">{business.reviewsSource} review</span>
-        </span>
+      <figcaption className="mt-4 text-[0.8125rem]">
+        <span className="block font-bold">{review.name}</span>
+        <span className="text-stone">{business.reviewsSource} review</span>
       </figcaption>
     </figure>
   );

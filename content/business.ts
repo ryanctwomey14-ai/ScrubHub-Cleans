@@ -94,19 +94,26 @@ export const business = {
    * `neighborhoodsConfirmed: true` to remove the "Sample list" tag.
    */
   neighborhoods: [
-    "Shadyside",
-    "Squirrel Hill",
-    "Lawrenceville",
-    "Mt. Lebanon",
-    "Upper St. Clair",
-    "Bethel Park",
-    "Fox Chapel",
-    "Sewickley",
-    "Wexford",
-    "Cranberry Twp",
-    "Moon Twp",
-    "Monroeville",
+    // [name, latitude, longitude]: positions the pins on the homepage map.
+    { name: "Lawrenceville", lat: 40.478, lon: -79.965 },
+    { name: "Shadyside", lat: 40.456, lon: -79.933 },
+    { name: "Squirrel Hill", lat: 40.426, lon: -79.915 },
+    { name: "Mt. Lebanon", lat: 40.374, lon: -80.05 },
+    { name: "Upper St. Clair", lat: 40.336, lon: -80.083 },
+    { name: "Bethel Park", lat: 40.327, lon: -80.03 },
+    { name: "Fox Chapel", lat: 40.513, lon: -79.879 },
+    { name: "Sewickley", lat: 40.537, lon: -80.184 },
+    { name: "Wexford", lat: 40.626, lon: -80.056 },
+    { name: "Cranberry Twp", lat: 40.685, lon: -80.107 },
+    { name: "Moon Twp", lat: 40.52, lon: -80.22 },
+    { name: "Monroeville", lat: 40.421, lon: -79.788 },
   ],
+  /** SAMPLE: the service boundary drawn on the homepage map, as [latitude, longitude] points. Replace with the owner's real coverage. */
+  serviceAreaOutline: [
+    [40.712, -80.135], [40.672, -80.02], [40.585, -79.87], [40.5, -79.8], [40.44, -79.745],
+    [40.39, -79.76], [40.335, -79.9], [40.3, -80.03], [40.31, -80.11], [40.39, -80.165],
+    [40.47, -80.255], [40.55, -80.245], [40.635, -80.165],
+  ] as [number, number][],
   neighborhoodsConfirmed: false,
 
   rating: {
@@ -289,6 +296,7 @@ export const business = {
       startingPrice: null,
       photoBrief:
         "Wide shot of a bright, empty office at golden hour: clean desks, chairs pushed in, city view through windows.",
+      image: "/photos/commercial-cleaning.jpg",
       seoTitle: "Commercial & Office Cleaning in Pittsburgh",
       seoDescription:
         "Commercial and office cleaning in Pittsburgh on a schedule built around your business hours. Flexible, accountable, and rated 4.8 stars.",

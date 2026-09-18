@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import type { ServiceSlug } from "@/content/business";
 import { ServiceCard } from "@/components/ui/service-card";
-import { Icon } from "@/components/ui/Icon";
-import { serviceIcon } from "@/components/ui/serviceIcons";
 import { startQuoteFor } from "@/lib/quote-store";
 import { scrollToQuote } from "@/lib/scroll-to-quote";
 
@@ -31,7 +29,6 @@ export function ServiceTile(props: {
       imageUrl={props.image}
       imageAlt={`${props.name} by ScrubHub Cleans`}
       photoBrief={props.photoBrief}
-      logo={<Icon name={serviceIcon[props.slug]} size={22} />}
       title={props.name}
       href={props.compact ? undefined : `/services/${props.slug}`}
       compact={props.compact}

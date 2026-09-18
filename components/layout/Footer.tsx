@@ -28,9 +28,9 @@ export function Footer() {
             </div>
           </div>
 
-          <ul className="grid gap-3 text-[0.9375rem] text-porcelain/80">
+          <ul className="grid gap-1 text-[0.9375rem] text-porcelain/80">
             <li>
-              <a href={business.contact.phoneHref} className="flex items-center gap-3 hover:text-porcelain">
+              <a href={business.contact.phoneHref} className="flex items-center gap-3 py-2.5 hover:text-porcelain">
                 <Icon name="phone" size={17} className="text-glint" />
                 <span>
                   Call or text <strong className="text-porcelain">{business.contact.phoneDisplay}</strong>
@@ -38,12 +38,12 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <a href={business.contact.emailHref} className="flex items-center gap-3 break-all hover:text-porcelain">
+              <a href={business.contact.emailHref} className="flex items-center gap-3 break-all py-2.5 hover:text-porcelain">
                 <Icon name="message" size={17} className="text-glint" />
                 {business.contact.email}
               </a>
             </li>
-            <li className="flex items-center gap-3">
+            <li className="flex items-center gap-3 py-2.5">
               <Icon name="clock" size={17} className="text-glint" />
               {business.hours.label} · Serving {cityLabel}
             </li>

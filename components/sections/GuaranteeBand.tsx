@@ -8,15 +8,15 @@ export function GuaranteeBand() {
       <div className="shell">
         <div
           data-reveal
-          className="on-ink grain relative overflow-hidden rounded-3xl bg-ink px-7 py-12 text-white md:px-14 md:py-16"
+          className="on-ink grain relative overflow-hidden rounded-3xl bg-ink px-6 py-9 text-white md:px-14 md:py-16"
         >
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full opacity-25 blur-3xl"
             style={{ background: "radial-gradient(circle, #3fd8f2, transparent 65%)" }}
           />
-          <div className="relative grid items-center gap-8 lg:grid-cols-[auto_1fr_auto] lg:gap-12">
-            <div className="grid h-24 w-24 place-items-center rounded-2xl bg-white/8 ring-1 ring-white/15">
+          <div className="relative grid items-center gap-6 md:gap-8 lg:grid-cols-[auto_1fr_auto] lg:gap-12">
+            <div className="grid h-20 w-20 place-items-center rounded-2xl bg-white/8 ring-1 ring-white/15 md:h-24 md:w-24">
               <span className="display text-[2.5rem] leading-none text-glint">
                 {business.guarantee.hours}
                 <span className="block text-center text-[0.75rem] font-bold uppercase tracking-[0.14em] text-mist">hours</span>
@@ -29,7 +29,7 @@ export function GuaranteeBand() {
               </h2>
               <p className="mt-3 max-w-2xl text-white/75">{business.guarantee.body}</p>
             </div>
-            <QuoteCta from="guarantee" />
+            <QuoteCta from="guarantee" className="btn btn-primary w-full sm:w-auto" />
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@ export function Objections() {
 
   return (
     <section className="section" aria-labelledby="objections-title">
-      <div className="shell grid gap-10 lg:grid-cols-12 lg:gap-14">
+      <div className="shell grid gap-8 lg:grid-cols-12 lg:gap-14">
         <div className="lg:col-span-5">
           <p data-reveal className="eyebrow">Before you book</p>
           <h2 id="objections-title" data-reveal className="display h2 mt-4 max-w-[14ch]">
@@ -23,7 +23,7 @@ export function Objections() {
             Everything people ask before they grab their spot, answered in one place.
           </p>
 
-          <ul data-reveal className="mt-8 space-y-3 text-[0.9375rem]">
+          <ul data-reveal className="mt-8 hidden space-y-3 text-[0.9375rem] lg:block">
             {[
               `${business.guarantee.hours}-hour make-it-right guarantee`,
               offer.payment,
@@ -38,13 +38,17 @@ export function Objections() {
             ))}
           </ul>
 
-          <div data-reveal className="mt-8">
+          <div data-reveal className="mt-8 hidden lg:block">
             <QuoteCta from="objections" />
           </div>
         </div>
 
         <div data-reveal className="rounded-2xl border border-sand bg-white px-6 md:px-8 lg:col-span-7">
           <Accordion items={items} />
+        </div>
+
+        <div className="-mt-4 lg:hidden">
+          <QuoteCta from="objections" className="btn btn-primary w-full sm:w-auto" />
         </div>
       </div>
     </section>

@@ -3,7 +3,6 @@ import { QuoteAgent } from "@/components/quote/QuoteAgent";
 import { DarkHero } from "@/components/sections/DarkHero";
 import { ServicesGrid } from "@/components/sections/ServicesGrid";
 import { ReviewMarquee } from "@/components/sections/ReviewMarquee";
-import { ReviewsBanner } from "@/components/sections/ReviewsBanner";
 import { Steps } from "@/components/sections/Steps";
 import { GuaranteeBand } from "@/components/sections/GuaranteeBand";
 import { Objections } from "@/components/sections/Objections";
@@ -30,7 +29,6 @@ export function HomeLanding() {
           src: "/photos/hero-before-after.jpg",
           alt: "Before and after: the same large living room, cluttered on the left and professionally cleaned on the right",
         }}
-        banner={<ReviewsBanner />}
         form={<QuoteAgent />}
       >
         <HeroOffer />

@@ -62,22 +62,24 @@ export function Steps() {
           </h2>
         </div>
 
-        <ol className="mt-12 grid gap-4 md:grid-cols-3">
+        <ol className="mt-8 grid gap-3 md:mt-12 md:grid-cols-3 md:gap-4">
           {steps.map((s, i) => (
             <li
               key={s.title}
               data-reveal
               data-reveal-delay={String(i * 0.08)}
-              className="relative rounded-2xl bg-white p-7 text-ink shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)] md:p-8"
+              className="relative flex gap-4 rounded-2xl bg-white p-5 text-ink shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)] md:block md:p-8"
             >
-              <span className="display text-[3rem] leading-none text-hub/15">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="display mt-3 text-[1.375rem] !font-bold">{s.title}</h3>
-              <p className="mt-2 text-[0.9375rem] leading-relaxed text-stone">{s.body}</p>
+              <span className="display shrink-0 text-[2.25rem] leading-none text-hub/20 md:text-[3rem] md:text-hub/15">{String(i + 1).padStart(2, "0")}</span>
+              <div>
+                <h3 className="display text-[1.25rem] !font-bold md:mt-3 md:text-[1.375rem]">{s.title}</h3>
+                <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-stone md:mt-2">{s.body}</p>
+              </div>
             </li>
           ))}
         </ol>
 
-        <div data-reveal className="mt-10 flex flex-wrap justify-center gap-3">
+        <div data-reveal className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center md:mt-10">
           <QuoteCta from="steps" />
           <a href={business.contact.phoneHref} className="btn btn-ghost-light">
             <Icon name="phone" size={16} /> {business.contact.phoneDisplay}

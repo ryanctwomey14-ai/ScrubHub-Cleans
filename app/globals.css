@@ -301,7 +301,93 @@ html.motion-ok [data-reveal] {
   to { transform: translateX(calc(-50% - 0.5rem)); }
 }
 
+/* Service area map (MapLibre markers): pins drop in one by one, the active one lifts and labels itself. */
+.sm-pin {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  width: 2.25rem;
+  height: 2.5rem;
+  cursor: pointer;
+}
+.sm-pin svg {
+  position: relative;
+  width: 1.5rem;
+  height: 1.875rem;
+  opacity: 0;
+  transform: translateY(-16px) scale(0.6);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.5s ease,
+    transform 0.7s var(--ease-out-expo);
+  transition-delay: calc(0.9s + var(--i) * 90ms);
+}
+.sm-pin svg path {
+  fill: var(--color-hub);
+  transition: fill 0.3s ease;
+}
+.service-map-canvas.is-in .sm-pin svg {
+  opacity: 1;
+  transform: none;
+}
+.service-map-canvas.is-in .is-active .sm-pin svg {
+  transform: translateY(-3px) scale(1.25);
+  transition-delay: 0s;
+}
+.is-active .sm-pin svg path { fill: var(--color-glint); }
+.sm-pin-label {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  translate: -50% 4px;
+  white-space: nowrap;
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  box-shadow: 0 12px 30px -10px rgb(0 0 0 / 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, translate 0.3s var(--ease-out-expo);
+}
+.is-active .sm-pin-label { opacity: 1; translate: -50% 0; }
+.sm-pin-pulse {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: -0.375rem;
+  border-radius: 9999px;
+  background: var(--color-glint);
+  opacity: 0;
+}
+.service-map-canvas.is-in .sm-pin-pulse {
+  animation: pin-pulse 2.6s ease-out infinite;
+  animation-delay: calc(1.8s + var(--i) * 0.21s);
+}
+@keyframes pin-pulse {
+  0% { opacity: 0.55; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(3.2); }
+}
+/* Map chrome in brand colors */
+.service-map-canvas .maplibregl-ctrl-group {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.5);
+}
+.service-map-canvas .maplibregl-ctrl-attrib {
+  background: rgb(8 18 38 / 0.7);
+  color: var(--color-mist);
+}
+.service-map-canvas .maplibregl-ctrl-attrib a { color: var(--color-mist); }
+.service-map-canvas .maplibregl-cooperative-gesture-screen { background: rgb(8 18 38 / 0.7); }
+
 @media (prefers-reduced-motion: reduce) {
+  .sm-pin-pulse { display: none; }
+
   .marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
   .marquee-track { animation: none; }
   .marquee-dupe { display: none; }

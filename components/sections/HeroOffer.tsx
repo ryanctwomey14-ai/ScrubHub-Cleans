@@ -1,23 +1,8 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { business } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
-import { nextAvailable } from "@/lib/quote-store";
-
-const noop = () => () => {};
-
-/** Next open slot, computed in the browser so a cached page never shows a stale date. */
-function useNextOpening() {
-  return useSyncExternalStore(
-    noop,
-    () => {
-      const n = nextAvailable();
-      return `${n.label} · ${n.window}`;
-    },
-    () => "",
-  );
-}
+import { useNextOpening } from "@/lib/use-next-opening";
 
 /**
  * Hero urgency block: the next open slot, with call/text as the backup.

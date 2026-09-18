@@ -67,12 +67,12 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
 
       <section className="section" aria-labelledby="included-title">
         <div className="shell grid gap-6 lg:grid-cols-12">
-          <div data-reveal className="rounded-2xl border border-sand bg-white p-7 md:p-10 lg:col-span-7">
+          <div data-reveal className="rounded-2xl border border-sand bg-white p-6 md:p-10 lg:col-span-7">
             <p className="eyebrow">What&rsquo;s included</p>
             <h2 id="included-title" className="display h2 mt-4">
               Where Your <em>Clean Focuses</em>
             </h2>
-            <ul className="mt-8 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            <ul className="mt-6 grid gap-x-8 gap-y-3.5 sm:grid-cols-2 md:mt-8 md:gap-y-4">
               {service.focus.map((f) => (
                 <li key={f} className="flex gap-3 text-[0.9375rem] leading-relaxed">
                   <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-hub text-white">
@@ -87,7 +87,7 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
             </p>
           </div>
 
-          <div data-reveal data-reveal-delay="0.08" className="on-ink flex flex-col rounded-2xl bg-ink p-7 text-white md:p-10 lg:col-span-5">
+          <div data-reveal data-reveal-delay="0.08" className="on-ink flex flex-col rounded-2xl bg-ink p-6 text-white md:p-10 lg:col-span-5">
             <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/10 text-glint">
               <Icon name={serviceIcon[service.slug]} size={26} />
             </span>

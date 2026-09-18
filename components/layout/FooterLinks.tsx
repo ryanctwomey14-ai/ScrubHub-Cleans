@@ -10,9 +10,9 @@ export function FooterLinks() {
   if (landingPaths.includes(pathname)) return null;
 
   return (
-    <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
+    <nav aria-label="Footer" className="-mx-2 flex flex-wrap md:mx-0 md:gap-x-4">
       {footerNav.map((l) => (
-        <Link key={l.href} href={l.href} className="hover:text-porcelain">
+        <Link key={l.href} href={l.href} className="px-2 py-3 hover:text-porcelain md:px-0 md:py-1">
           {l.label}
         </Link>
       ))}

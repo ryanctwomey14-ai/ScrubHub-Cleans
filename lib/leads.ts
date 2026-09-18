@@ -38,7 +38,7 @@ export interface Lead {
       sizeTier?: string;
     };
   };
-  booking?: { date: string; window: string };
+  booking?: { date: string; window: string; address?: string; unit?: string; notes?: string };
   /** Last few chat turns, when the lead came from the concierge. */
   transcript?: { role: string; content: string }[];
   page?: string;
@@ -125,7 +125,7 @@ function parseBooking(raw: unknown): Lead["booking"] {
   const date = clean(r.date, 10);
   const window = clean(r.window, 40);
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !window || !bookingRules.windows.includes(window)) return undefined;
-  return { date, window };
+  return { date, window, address: clean(r.address, 160), unit: clean(r.unit, 40), notes: clean(r.notes, 300) };
 }
 
 export function parseLead(body: Record<string, unknown>): { lead?: Lead; error?: string } {
@@ -152,6 +152,7 @@ export function parseLead(body: Record<string, unknown>): { lead?: Lead; error?:
   const needsSlot = stage === "booked" || stage === "card_added";
   const booking = needsSlot ? parseBooking(body.booking) : undefined;
   if (needsSlot && !booking) return { error: "Please pick a date and time." };
+  if (needsSlot && !booking?.address) return { error: "Please add the address for the clean." };
 
   return {
     lead: {
@@ -180,6 +181,12 @@ export function parseLead(body: Record<string, unknown>): { lead?: Lead; error?:
   };
 }
 
+function where(lead: Lead) {
+  const b = lead.booking;
+  const line = [b?.address, b?.unit].filter(Boolean).join(", ");
+  return `${line || "address TBD"}${lead.zip ? ` ${lead.zip}` : ""}${b?.notes ? ` (notes: ${b.notes})` : ""}`;
+}
+
 function headline(lead: Lead) {
   const who = `${lead.name} (${lead.phone ?? lead.email})`;
   const what = lead.quote ? `${lead.quote.serviceName}, quoted ${lead.quote.display} ${lead.quote.unit}` : lead.service ?? "general inquiry";
@@ -191,9 +198,9 @@ function headline(lead: Lead) {
     case "started":
       return `📝 New lead (quote in progress): ${who}, ${lead.service ?? "cleaning"}.`;
     case "booked":
-      return `✅ Booked: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window}. Send the email confirmation link.`;
+      return `✅ Booked: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window} at ${where(lead)}. Send the email confirmation link.`;
     case "card_added":
-      return `💳 Card on file, cleaner can be scheduled: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window}.`;
+      return `💳 Card on file, cleaner can be scheduled: ${who}, ${what}, ${lead.booking?.date} ${lead.booking?.window} at ${where(lead)}.`;
     case "quoted":
       return `💬 New quote: ${who}, ${what}.`;
     default:

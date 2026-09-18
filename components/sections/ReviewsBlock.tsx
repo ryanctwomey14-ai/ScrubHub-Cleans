@@ -4,7 +4,7 @@ import { Icon, Stars } from "@/components/ui/Icon";
 
 export function ReviewCard({ review }: { review: Review }) {
   return (
-    <figure className="flex h-full flex-col rounded-2xl border border-sand bg-white p-7">
+    <figure className="flex h-full flex-col rounded-2xl border border-sand bg-white p-6 md:p-7">
       <Stars className="text-[#FBBC04]" size={15} />
       <p className="display mt-4 text-[1.1875rem] leading-snug !font-bold">&ldquo;{review.title}&rdquo;</p>
       <blockquote className="mt-3 flex-1 text-[0.9375rem] leading-relaxed text-stone">{review.text}</blockquote>
@@ -43,9 +43,18 @@ export function ReviewsBlock({ showLink = true, all = false }: { showLink?: bool
           </div>
         </div>
 
-        <ul className={`mt-12 grid gap-4 md:grid-cols-2 ${all ? "lg:grid-cols-3" : "lg:grid-cols-3"}`}>
+        <ul
+          className={`mt-8 gap-4 md:mt-12 md:grid md:grid-cols-2 lg:grid-cols-3 ${
+            all ? "grid" : "-mx-5 flex snap-x snap-mandatory overflow-x-auto px-5 pb-2 [scrollbar-width:none]"
+          }`}
+        >
           {reviews.map((r, i) => (
-            <li key={r.name} data-reveal data-reveal-delay={String((i % 3) * 0.06)}>
+            <li
+              key={r.name}
+              data-reveal
+              data-reveal-delay={String((i % 3) * 0.06)}
+              className={all ? "" : "w-[85%] shrink-0 snap-start md:w-auto"}
+            >
               <ReviewCard review={r} />
             </li>
           ))}
@@ -53,7 +62,7 @@ export function ReviewsBlock({ showLink = true, all = false }: { showLink?: bool
 
         {showLink && (
           <div data-reveal className="mt-8 text-center">
-            <Link href="/reviews" className="link-draw inline-flex items-center gap-2 font-bold text-hub">
+            <Link href="/reviews" className="link-draw inline-flex items-center gap-2 py-2 font-bold text-hub">
               Read all {business.reviews.length} client stories <Icon name="arrow" size={15} />
             </Link>
           </div>
