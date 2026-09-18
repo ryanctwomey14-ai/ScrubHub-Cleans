@@ -24,6 +24,10 @@ export default function HomePage() {
         }
         lede={`The cleaning company your ${business.location.city} neighbors trust with their homes, their families, and their keys. Tailored to how you live, and if we ever miss a spot, we're back within 24 hours to make it right.`}
         photoBrief="Wide shot of a bright, freshly cleaned living room with a ScrubHub cleaner in a branded shirt adding a final touch. Keep the left third calm for text."
+        image={{
+          src: "/photos/hero-before-after.jpg",
+          alt: "Before and after: the same large living room, cluttered on the left and professionally cleaned on the right",
+        }}
         form={<QuoteAgent />}
       />
       <FeatureCards />

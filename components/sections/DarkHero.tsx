@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { business } from "@/content/business";
 import { Icon } from "@/components/ui/Icon";
@@ -15,12 +16,15 @@ export function DarkHero({
   form,
   crumbs,
   size = "page",
+  image,
   children,
 }: {
   eyebrow: string;
   title: React.ReactNode;
   lede?: React.ReactNode;
   photoBrief: string;
+  /** Real background photo; replaces the navy placeholder. */
+  image?: { src: string; alt: string };
   form?: React.ReactNode;
   crumbs?: { href: string; label: string }[];
   size?: "home" | "page";
@@ -30,25 +34,47 @@ export function DarkHero({
 
   return (
     <section className="on-ink grain relative isolate overflow-hidden bg-night text-white">
-      {/* Photo stand-in: replace with <Image fill className="object-cover" /> once shot */}
-      <div
-        role="img"
-        aria-label={`Placeholder photo: ${photoBrief}`}
-        className="absolute inset-0 -z-10 bg-[linear-gradient(115deg,#0b1733_0%,#13264c_45%,#1d3a6b_100%)]"
-      >
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-[0.07]"
-          style={{ backgroundImage: "repeating-linear-gradient(105deg, #fff 0 1px, transparent 1px 16%)" }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -right-40 -top-40 h-[42rem] w-[42rem] rounded-full opacity-30 blur-3xl"
-          style={{ background: "radial-gradient(circle, #3fd8f2, transparent 62%)" }}
-        />
-      </div>
-      {/* legibility scrim, as it would sit over a real photo */}
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-night via-night/80 to-night/20" />
+      {image ? (
+        <>
+          <Image
+            src={image.src}
+            alt={image.alt}
+            fill
+            priority
+            quality={90}
+            sizes="100vw"
+            className="-z-10 object-cover object-center"
+          />
+          {/* Legibility: darker behind the headline (left), lighter so the clean side reads bright (right) */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 bg-gradient-to-r from-night/85 via-night/45 to-night/10 max-lg:bg-night/65"
+          />
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-36 bg-gradient-to-b from-night/75 to-transparent" />
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-night/80 to-transparent" />
+        </>
+      ) : (
+        <>
+          {/* Photo stand-in until a real photo is supplied */}
+          <div
+            role="img"
+            aria-label={`Placeholder photo: ${photoBrief}`}
+            className="absolute inset-0 -z-10 bg-[linear-gradient(115deg,#0b1733_0%,#13264c_45%,#1d3a6b_100%)]"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-[0.07]"
+              style={{ backgroundImage: "repeating-linear-gradient(105deg, #fff 0 1px, transparent 1px 16%)" }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute -right-40 -top-40 h-[42rem] w-[42rem] rounded-full opacity-30 blur-3xl"
+              style={{ background: "radial-gradient(circle, #3fd8f2, transparent 62%)" }}
+            />
+          </div>
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-night via-night/80 to-night/20" />
+        </>
+      )}
 
       <div
         className={`shell relative grid gap-y-8 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-6 ${
@@ -135,9 +161,11 @@ export function DarkHero({
         </div>
       </div>
 
-      <p className={`absolute right-4 hidden max-w-xs ${home ? "bottom-28" : "bottom-3"} text-right text-[0.6875rem] leading-snug text-white/35 lg:block`}>
-        Photo to shoot: {photoBrief}
-      </p>
+      {!image && (
+        <p className={`absolute right-4 hidden max-w-xs ${home ? "bottom-28" : "bottom-3"} text-right text-[0.6875rem] leading-snug text-white/35 lg:block`}>
+          Photo to shoot: {photoBrief}
+        </p>
+      )}
     </section>
   );
 }
