@@ -17,6 +17,7 @@ export function DarkHero({
   crumbs,
   size = "page",
   image,
+  banner,
   children,
 }: {
   eyebrow: string;
@@ -25,6 +26,8 @@ export function DarkHero({
   photoBrief: string;
   /** Real background photo; replaces the navy placeholder. */
   image?: { src: string; alt: string };
+  /** Shown above the eyebrow and headline (e.g. the Google reviews banner). */
+  banner?: React.ReactNode;
   form?: React.ReactNode;
   crumbs?: { href: string; label: string }[];
   size?: "home" | "page";
@@ -104,6 +107,11 @@ export function DarkHero({
             </nav>
           )}
 
+          {banner && (
+            <div data-reveal className="mb-6">
+              {banner}
+            </div>
+          )}
           <p data-reveal className="eyebrow">{eyebrow}</p>
           <h1
             data-reveal
