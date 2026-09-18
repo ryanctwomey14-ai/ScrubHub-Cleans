@@ -57,6 +57,15 @@ An AI concierge chat assistant that answers customer questions and guides them t
 - Write all copy ourselves: confident, warm, specific. No lorem ipsum, no clichés.
 - If unsure, ask the client instead of guessing.
 
+## Chosen design direction: B — "Porcelain" (approved 2026-09-18)
+- **Mood:** bright, airy, gallery-like; premium hospitality. Reads as clean and trustworthy.
+- **Palette:** Porcelain `#F7F5F0` (base) · Linen `#ECE7DD` (alternate surfaces) · Ink Navy `#0F1D3A` (all text; footer and chat panel backgrounds) · Hub Blue `#1F6FFF` (primary buttons only) · Stone `#6E6A62` (secondary text) · Glint Cyan `#3FD8F2` (focus states and chat accents only)
+- **Type:** Fraunces for display (soft optical size, quirky alternates off) + Manrope for body/UI.
+- **Hero:** asymmetric split. Large headline left with the 4.8★ / 160 reviews line; tall rounded-arch photo of a sunlit finished room right; slim "instant quote" bar (service, zip, button) overlapping the hero's bottom edge.
+- **Signature motion:** masked line-by-line headline rise + arch frame opening and settling from a slight zoom; later, a scroll-pinned "24-hour make-it-right" moment with a clock hand sweeping a full circle.
+- **Principles carried from the references:** one accent on a restrained base; contact/quote always reachable; layered elements that bridge sections; proof right after the fold; big numerals as trust; a three-step process; framed imagery.
+- **Logo:** the logo's sparkle is the only sparkle on the site. A transparent/SVG logo is required for light backgrounds.
+
 ## Process
 Phases, each ending in a checkpoint and a git commit:
 1. Strategy (no code): Design DNA, positioning, three design directions → STOP for a choice
@@ -68,5 +77,6 @@ Phases, each ending in a checkpoint and a git commit:
 7. Final polish and QA: reduced motion, a11y, SEO, Lighthouse 90+ on mobile, final report
 
 ## Progress
-- **Phase 1 — Strategy:** in progress. CLAUDE.md created, git initialized. Design DNA + directions presented; awaiting the client's choice.
+- **Phase 1 — Strategy:** ✅ complete. Design DNA and three directions presented; client chose B "Porcelain" (see above).
+- **Phase 2 — Plan:** waiting on the premium-cleaning-site skill contents (it defines the homepage section order) before writing PLAN.md.
 - **Open items:** premium-cleaning-site SKILL.md is empty (contents pending); confirm Pittsburg vs Pittsburgh; theme-factory skill not installed; Context7 MCP loads on next session start; vector logo needed.
